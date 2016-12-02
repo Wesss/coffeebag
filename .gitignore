@@ -1,6 +1,7 @@
 # General
 bin/
 tmp/
+dist/
 *.tmp
 
 # Java
