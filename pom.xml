@@ -21,6 +21,11 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <!-- Disable annotation processing
+                    	to prevent the compiler from trying to use the processor
+                    	it is compiling
+                     -->
+                    <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
         </plugins>
@@ -36,5 +41,4 @@
             <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
     </dependencies>
-
 </project>
