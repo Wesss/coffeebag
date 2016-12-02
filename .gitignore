@@ -1,5 +1,17 @@
+# General
+bin/
+tmp/
+dist/
+*.tmp
+
 # Java
 *.class
+
+# Eclipse
+.settings/
+.classpath
+.project
+*.jardesc
 
 # Intellij
 out/
