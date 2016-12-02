@@ -45,7 +45,6 @@ public class ReferenceFinder {
 		final TreePath elementPath = trees.getPath(source);
 		final List<? extends ImportTree> imports = elementPath.getCompilationUnit().getImports();
 		for (ImportTree importTree : imports) {
-			System.out.println("Importing: " + importTree.getQualifiedIdentifier());
 			types.add(importTree.getQualifiedIdentifier().toString());
 		}
 		
