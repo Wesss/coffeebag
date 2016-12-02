@@ -14,7 +14,9 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
 
+import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ImportTree;
+import com.sun.source.util.SimpleTreeVisitor;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 
@@ -43,13 +45,17 @@ public class ReferenceFinder {
 		this.trees = Trees.instance(env);
 		
 		final TreePath elementPath = trees.getPath(source);
-		final List<? extends ImportTree> imports = elementPath.getCompilationUnit().getImports();
+		final CompilationUnitTree compilationUnit = elementPath.getCompilationUnit();
+		final List<? extends ImportTree> imports = compilationUnit.getImports();
 		for (ImportTree importTree : imports) {
 			types.add(importTree.getQualifiedIdentifier().toString());
 		}
 		
 		final ReferenceScanner scanner = new ReferenceScanner();
 		scanner.scan(source);
+		
+		final ReferenceVisitor visitor = new ReferenceVisitor();
+		compilationUnit.accept(visitor, null);
 	}
 	
 	/**
@@ -60,7 +66,19 @@ public class ReferenceFinder {
 		return Collections.unmodifiableSet(types);
 	}
 	
-	private final class ReferenceScanner extends ElementScanner8<Void, Void> {
+	/**
+	 * Visits AST nodes and scans for used types
+	 */
+	private class ReferenceVisitor extends SimpleTreeVisitor<Void, Void> {
+		
+	}
+	
+	/**
+	 * Scans items for used types
+	 *
+	 * Works at the annotation processor level using standard interfaces
+	 */
+	private class ReferenceScanner extends ElementScanner8<Void, Void> {
 
 		@Override
 		public Void visitVariable(VariableElement e, Void p) {
@@ -89,6 +107,11 @@ public class ReferenceFinder {
 			for (TypeMirror exceptionType : e.getThrownTypes()) {
 				types.add(exceptionType.toString());
 			}
+			for (TypeParameterElement typeParam : e.getTypeParameters()) {
+				for (TypeMirror bound : typeParam.getBounds()) {
+					types.add(bound.toString());
+				}
+			}
 			super.visitExecutable(e, p);
 			return null;
 		}
@@ -100,8 +123,5 @@ public class ReferenceFinder {
 			super.visitTypeParameter(e, p);
 			return null;
 		}
-		
-		
-		
 	}
 }
