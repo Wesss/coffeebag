@@ -10,6 +10,7 @@ tmp/
 .settings/
 .classpath
 .project
+*.jardesc
 
 # Intellij
 out/
