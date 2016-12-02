@@ -10,3 +10,4 @@ target/
 
 # local folder for experimenting
 sandbox/
+*.DS_Store
