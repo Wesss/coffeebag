@@ -4,6 +4,9 @@ tmp/
 dist/
 *.tmp
 
+# Maven
+target/
+
 # Java
 *.class
 
@@ -15,7 +18,6 @@ dist/
 
 # Intellij
 out/
-target/
 .idea/
 *.iml
 *.iws
