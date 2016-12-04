@@ -1,5 +1,6 @@
 package org.coffeebag.processor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import javax.lang.model.util.ElementScanner8;
 
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ImportTree;
+import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
@@ -50,9 +52,27 @@ public class ReferenceFinder {
 		
 		final TreePath elementPath = trees.getPath(source);
 		final CompilationUnitTree compilationUnit = elementPath.getCompilationUnit();
+		
+		// Inspect imports
 		final List<? extends ImportTree> imports = compilationUnit.getImports();
+		// Track the packages imported using glob imports
+		final List<String> globPackages = new ArrayList();
+		
 		for (ImportTree importTree : imports) {
-			types.add(importTree.getQualifiedIdentifier().toString());
+			final Tree qualifiedId = importTree.getQualifiedIdentifier();
+			System.out.println("Import tree kind: " + importTree.getKind());
+			System.out.println("Import tree qualified ID kind: " + qualifiedId.getKind());
+			if (qualifiedId.getKind().equals(Tree.Kind.MEMBER_SELECT)) {
+				final MemberSelectTree idReference = (MemberSelectTree) qualifiedId;
+				if (idReference.getIdentifier().contentEquals("*")) {
+					// Glob import
+					System.out.println("Glob import of package " + idReference.getExpression());
+					globPackages.add(idReference.getExpression().toString());
+				} else {
+					// Single-class import
+					types.add(qualifiedId.toString());
+				}
+			}
 		}
 		
 		final ReferenceScanner scanner = new ReferenceScanner();
