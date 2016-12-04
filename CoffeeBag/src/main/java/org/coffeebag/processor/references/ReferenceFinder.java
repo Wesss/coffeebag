@@ -15,6 +15,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
+import javax.lang.model.util.Types;
 
 import org.coffeebag.processor.references.Import.ImportType;
 
@@ -31,6 +32,11 @@ import com.sun.source.util.Trees;
  *
  */
 public class ReferenceFinder {
+	
+	/**
+	 * The processing environment
+	 */
+	private final ProcessingEnvironment mEnv;
 	
 	/**
 	 * The names of the types that the code refers to
@@ -52,6 +58,7 @@ public class ReferenceFinder {
 	 * @param source the source to analyze
 	 */
 	public ReferenceFinder(ProcessingEnvironment env, Element source) {
+		mEnv = env;
 		mTrees = Trees.instance(env);
 		mTypes = new HashSet<>();
 		mImports = new HashSet<>();
@@ -71,7 +78,7 @@ public class ReferenceFinder {
 				if (idReference.getIdentifier().contentEquals("*")) {
 					// Glob import
 					System.out.println("Glob import of package " + idReference.getExpression());
-					mImports.add(new Import(ImportType.Package, idReference.getExpression().toString()));
+					mImports.add(new Import(ImportType.GLOB, idReference.getExpression().toString()));
 				} else {
 					// Single-class import
 					mTypes.add(qualifiedId.toString());
@@ -116,9 +123,13 @@ public class ReferenceFinder {
 			System.out.println("Visiting variable " + e);
 			System.out.println("Variable type is " + e.asType());
 			System.out.println("Variable type kind: " + e.asType().getKind());
+			
+			final Types types = mEnv.getTypeUtils();
+			
 			final TypeMirror varType = e.asType();
 			if (varType.getKind().equals(TypeKind.DECLARED)) {
-				mTypes.add(e.asType().toString());
+				// Erase type to remove generic type parameters
+				mTypes.add(types.erasure(varType).toString());
 			}
 			super.visitVariable(e, p);
 			return null;

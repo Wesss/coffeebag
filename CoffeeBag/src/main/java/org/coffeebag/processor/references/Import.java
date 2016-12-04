@@ -12,11 +12,11 @@ public class Import {
 		/**
 		 * An import containing the fully-qualified name of a type
 		 */
-		Type,
+		TYPE,
 		/**
-		 * A glob import of all classes within a package
+		 * A glob import of all classes within a package, or all inner classes within a class
 		 */
-		Package,
+		GLOB,
 		// TODO: Static imports
 	}
 	
@@ -74,5 +74,20 @@ public class Import {
 		return true;
 	}
 	
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("import ");
+		builder.append(scope);
+		switch (type) {
+		case TYPE:
+			builder.append(';');
+			break;
+		case GLOB:
+			builder.append(".*;");
+			break;
+		}
+		return builder.toString();
+	}
 	
 }

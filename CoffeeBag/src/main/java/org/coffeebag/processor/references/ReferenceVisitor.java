@@ -7,7 +7,10 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Types;
 
+import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreeScanner;
@@ -62,6 +65,16 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		System.out.println("[Tree] Type kind: " + tree.getType().getKind());
 		System.out.println("[Tree] Type string: " + tree.getType());
 		Tree varType = tree.getType();
+		handleTypeTree(varType);
+		return super.visitVariable(tree, arg1);
+	}
+	
+	/**
+	 * Interprets a tree that represents the type of a variable
+	 * @param varType the type of a variable
+	 */
+	private void handleTypeTree(Tree varType) {
+		System.out.println("[Tree] handleTypeTree(" + varType + ")");
 		switch (varType.getKind()) {
 		case MEMBER_SELECT:
 			// Type name is a fully-qualified type
@@ -70,15 +83,20 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		case IDENTIFIER:
 			// Type name is an unqualified ID
 			final String qualified = resolveUnqualifiedType(varType.toString());
+			System.out.println("[Tree] Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
 			if (qualified != null) {
 				mTypes.add(qualified);
 			}
+			break;
+		case PARAMETERIZED_TYPE:
+			final ParameterizedTypeTree parameterized = (ParameterizedTypeTree) varType;
+			// The type of the parameterized type should be resolved like any other type
+			handleTypeTree(parameterized.getType());
 			break;
 		default:
 			System.out.println("[Tree] Variable type has unexpected kind " + varType.getKind());
 			break;
 		}
-		return super.visitVariable(tree, arg1);
 	}
 
 	/**
@@ -92,13 +110,14 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 */
 	private String resolveUnqualifiedType(String unqualifiedName) {
 		for (Import anImport : mImports) {
+			System.out.printf("[Tree] Looking for \"%s\" in import \"%s\"\n", unqualifiedName, anImport);
 			switch (anImport.getType()) {
-			case Type:
+			case TYPE:
 				if (anImport.getScope().endsWith("." + unqualifiedName)) {
 					return anImport.getScope();
 				}
 				break;
-			case Package:
+			case GLOB:
 				final String qualified = resolveClassInPackage(anImport.getScope(), unqualifiedName);
 				if (qualified != null) {
 					return qualified;
@@ -116,23 +135,40 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * @return the fully-qualified name of the class, or null if it could not be resolved in this package
 	 */
 	private String resolveClassInPackage(String packageName, String className) {
-		// TODO: Handle imports of nested classes
 		final PackageElement packageElement = mEnv.getElementUtils().getPackageElement(packageName);
-		if (packageElement == null) {
-			return null;
-		}
-		for (Element innerType : packageElement.getEnclosedElements()) {
-			switch (innerType.getKind()) {
-			// Intentional fallthrough
-			case CLASS:
-			case ENUM:
-			case INTERFACE:
-				if (innerType.getSimpleName().contentEquals(className)) {
-					// Found
-					return innerType.asType().toString();
+		if (packageElement != null) {
+			for (Element innerType : packageElement.getEnclosedElements()) {
+				switch (innerType.getKind()) {
+				// Intentional fallthrough
+				case CLASS:
+				case ENUM:
+				case INTERFACE:
+					if (innerType.getSimpleName().contentEquals(className)) {
+						// Found
+						return innerType.asType().toString();
+					}
+				default:
+					break;
 				}
-			default:
-				break;
+			}
+		}
+		final TypeElement typeElement = mEnv.getElementUtils().getTypeElement(packageName);
+		if (typeElement != null) {
+			for (Element inner : typeElement.getEnclosedElements()) {
+				switch (inner.getKind()) {
+				// Intentional fallthrough
+				case CLASS:
+				case ENUM:
+				case INTERFACE:
+					if (inner.getSimpleName().contentEquals(className)) {
+						// Found
+						// Erase type to remove template arguments
+						final Types types = mEnv.getTypeUtils();
+						return types.erasure(inner.asType()).toString();
+					}
+				default:
+					break;
+				}
 			}
 		}
 		return null;
