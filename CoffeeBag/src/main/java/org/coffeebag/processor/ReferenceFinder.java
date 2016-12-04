@@ -11,13 +11,16 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
 
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ImportTree;
-import com.sun.source.util.SimpleTreeVisitor;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
+import com.sun.source.util.TreeScanner;
 import com.sun.source.util.Trees;
 
 /**
@@ -69,7 +72,20 @@ public class ReferenceFinder {
 	/**
 	 * Visits AST nodes and scans for used types
 	 */
-	private class ReferenceVisitor extends SimpleTreeVisitor<Void, Void> {
+	private class ReferenceVisitor extends TreeScanner<Void, Void> {
+
+		@Override
+		public Void visitVariable(VariableTree tree, Void arg1) {
+			System.out.println("[Tree] Visiting variable " + tree);
+			System.out.println("[Tree] Type kind: " + tree.getType().getKind());
+			System.out.println("[Tree] Type string: " + tree.getType());
+			Tree varType = tree.getType();
+			if (varType.getKind().equals(Tree.Kind.MEMBER_SELECT)) {
+				// Type name is a fully-qualified type
+				types.add(varType.toString());
+			}
+			return super.visitVariable(tree, arg1);
+		}
 		
 	}
 	
@@ -84,7 +100,11 @@ public class ReferenceFinder {
 		public Void visitVariable(VariableElement e, Void p) {
 			System.out.println("Visiting variable " + e);
 			System.out.println("Variable type is " + e.asType());
-			types.add(e.asType().toString());
+			System.out.println("Variable type kind: " + e.asType().getKind());
+			final TypeMirror varType = e.asType();
+			if (varType.getKind().equals(TypeKind.DECLARED)) {
+				types.add(e.asType().toString());
+			}
 			super.visitVariable(e, p);
 			return null;
 		}
@@ -103,7 +123,9 @@ public class ReferenceFinder {
 		@Override
 		public Void visitExecutable(ExecutableElement e, Void p) {
 			System.out.println("Visiting executable " + e);
-			types.add(e.getReturnType().toString());
+			if (e.getReturnType().getKind().equals(TypeKind.DECLARED)) {
+				types.add(e.getReturnType().toString());
+			}
 			for (TypeMirror exceptionType : e.getThrownTypes()) {
 				types.add(exceptionType.toString());
 			}
