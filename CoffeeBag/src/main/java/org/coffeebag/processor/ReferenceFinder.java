@@ -2,6 +2,7 @@ package org.coffeebag.processor;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -59,6 +60,15 @@ public class ReferenceFinder {
 		
 		final ReferenceVisitor visitor = new ReferenceVisitor();
 		compilationUnit.accept(visitor, null);
+		
+		// Post-process
+		// Remove java.lang
+		for (final Iterator<String> iter = types.iterator(); iter.hasNext() ; ) {
+			final String typeName = iter.next();
+			if (typeName.startsWith("java.lang.")) {
+				iter.remove();
+			}
+		}
 	}
 	
 	/**

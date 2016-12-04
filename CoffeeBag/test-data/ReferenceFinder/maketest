@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Creates the two files that make up a test
+# Usage: maketest Name
+
+
+CLASSNAME=$1
+if [ -n "$CLASSNAME" ]; then
+	> $CLASSNAME.txt
+	SOURCE=$CLASSNAME.java
+	echo '' >> $SOURCE
+	echo "class $CLASSNAME {" >> $SOURCE
+	echo '' >> $SOURCE
+	echo '}' >> $SOURCE
+else
+	echo "Usage: $0 Name"
+fi
