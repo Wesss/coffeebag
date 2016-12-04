@@ -1,6 +1,5 @@
-package org.coffeebag.processor;
+package org.coffeebag.processor.references;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,13 +16,13 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
 
+import org.coffeebag.processor.references.Import.ImportType;
+
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ImportTree;
 import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
-import com.sun.source.util.TreeScanner;
 import com.sun.source.util.Trees;
 
 /**
@@ -36,27 +35,32 @@ public class ReferenceFinder {
 	/**
 	 * The names of the types that the code refers to
 	 */
-	private final Set<String> types = new HashSet<>();
+	private final Set<String> mTypes;
+	
+	/**
+	 * The imports
+	 */
+	private final Set<Import> mImports;
 	
 	/**
 	 * The trees object associated with the environment
 	 */
-	private final Trees trees;
+	private final Trees mTrees;
 	
 	/**
 	 * Creates a reference finder that will analyze the provided source
 	 * @param source the source to analyze
 	 */
 	public ReferenceFinder(ProcessingEnvironment env, Element source) {
-		this.trees = Trees.instance(env);
+		mTrees = Trees.instance(env);
+		mTypes = new HashSet<>();
+		mImports = new HashSet<>();
 		
-		final TreePath elementPath = trees.getPath(source);
+		final TreePath elementPath = mTrees.getPath(source);
 		final CompilationUnitTree compilationUnit = elementPath.getCompilationUnit();
 		
 		// Inspect imports
 		final List<? extends ImportTree> imports = compilationUnit.getImports();
-		// Track the packages imported using glob imports
-		final List<String> globPackages = new ArrayList();
 		
 		for (ImportTree importTree : imports) {
 			final Tree qualifiedId = importTree.getQualifiedIdentifier();
@@ -67,10 +71,10 @@ public class ReferenceFinder {
 				if (idReference.getIdentifier().contentEquals("*")) {
 					// Glob import
 					System.out.println("Glob import of package " + idReference.getExpression());
-					globPackages.add(idReference.getExpression().toString());
+					mImports.add(new Import(ImportType.Package, idReference.getExpression().toString()));
 				} else {
 					// Single-class import
-					types.add(qualifiedId.toString());
+					mTypes.add(qualifiedId.toString());
 				}
 			}
 		}
@@ -78,12 +82,13 @@ public class ReferenceFinder {
 		final ReferenceScanner scanner = new ReferenceScanner();
 		scanner.scan(source);
 		
-		final ReferenceVisitor visitor = new ReferenceVisitor();
+		final ReferenceVisitor visitor = new ReferenceVisitor(env, mImports);
 		compilationUnit.accept(visitor, null);
+		mTypes.addAll(visitor.getTypes());
 		
 		// Post-process
 		// Remove java.lang
-		for (final Iterator<String> iter = types.iterator(); iter.hasNext() ; ) {
+		for (final Iterator<String> iter = mTypes.iterator(); iter.hasNext() ; ) {
 			final String typeName = iter.next();
 			if (typeName.startsWith("java.lang.")) {
 				iter.remove();
@@ -96,27 +101,7 @@ public class ReferenceFinder {
 	 * @return the referenced types
 	 */
 	public Set<String> getTypesUsed() {
-		return Collections.unmodifiableSet(types);
-	}
-	
-	/**
-	 * Visits AST nodes and scans for used types
-	 */
-	private class ReferenceVisitor extends TreeScanner<Void, Void> {
-
-		@Override
-		public Void visitVariable(VariableTree tree, Void arg1) {
-			System.out.println("[Tree] Visiting variable " + tree);
-			System.out.println("[Tree] Type kind: " + tree.getType().getKind());
-			System.out.println("[Tree] Type string: " + tree.getType());
-			Tree varType = tree.getType();
-			if (varType.getKind().equals(Tree.Kind.MEMBER_SELECT)) {
-				// Type name is a fully-qualified type
-				types.add(varType.toString());
-			}
-			return super.visitVariable(tree, arg1);
-		}
-		
+		return Collections.unmodifiableSet(mTypes);
 	}
 	
 	/**
@@ -133,7 +118,7 @@ public class ReferenceFinder {
 			System.out.println("Variable type kind: " + e.asType().getKind());
 			final TypeMirror varType = e.asType();
 			if (varType.getKind().equals(TypeKind.DECLARED)) {
-				types.add(e.asType().toString());
+				mTypes.add(e.asType().toString());
 			}
 			super.visitVariable(e, p);
 			return null;
@@ -142,9 +127,9 @@ public class ReferenceFinder {
 		@Override
 		public Void visitType(TypeElement e, Void p) {
 			System.out.println("Visiting type " + e);
-			types.add(e.getSuperclass().toString());
+			mTypes.add(e.getSuperclass().toString());
 			for (TypeMirror implInterface : e.getInterfaces()) {
-				types.add(implInterface.toString());
+				mTypes.add(implInterface.toString());
 			}
 			super.visitType(e, p);
 			return null;
@@ -154,14 +139,14 @@ public class ReferenceFinder {
 		public Void visitExecutable(ExecutableElement e, Void p) {
 			System.out.println("Visiting executable " + e);
 			if (e.getReturnType().getKind().equals(TypeKind.DECLARED)) {
-				types.add(e.getReturnType().toString());
+				mTypes.add(e.getReturnType().toString());
 			}
 			for (TypeMirror exceptionType : e.getThrownTypes()) {
-				types.add(exceptionType.toString());
+				mTypes.add(exceptionType.toString());
 			}
 			for (TypeParameterElement typeParam : e.getTypeParameters()) {
 				for (TypeMirror bound : typeParam.getBounds()) {
-					types.add(bound.toString());
+					mTypes.add(bound.toString());
 				}
 			}
 			super.visitExecutable(e, p);
@@ -171,7 +156,7 @@ public class ReferenceFinder {
 		@Override
 		public Void visitTypeParameter(TypeParameterElement e, Void p) {
 			System.out.println("Visiting type parameter " + e);
-			types.add(e.asType().toString());
+			mTypes.add(e.asType().toString());
 			super.visitTypeParameter(e, p);
 			return null;
 		}

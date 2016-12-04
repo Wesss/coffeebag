@@ -13,6 +13,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
+import org.coffeebag.processor.references.ReferenceFinder;
+
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class CheckVisibility extends AbstractProcessor {
