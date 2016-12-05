@@ -34,13 +34,8 @@ public class ReferenceFinderTest extends AbstractCompilerTest {
 		}
 	}
 
-	/**
-	 * Runs this test
-	 * @throws MalformedURLException
-	 */
 	@Override
-	public void run() throws MalformedURLException {
-		final CheckVisibility processor = CheckVisibility.testMode();
+	public void run(CheckVisibility processor) throws MalformedURLException {
 		ASSERT.about(JavaSourceSubjectFactory.javaSource())
 				.that(JavaFileObjects.forResource(getSource().toURI().toURL()))
 				.processedWith(processor)

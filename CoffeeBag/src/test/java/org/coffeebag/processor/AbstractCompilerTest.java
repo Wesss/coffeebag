@@ -30,7 +30,7 @@ public abstract class AbstractCompilerTest {
 	/**
 	 * run the test
 	 */
-	public abstract void run() throws MalformedURLException;
+	public abstract void run(CheckVisibility processor) throws MalformedURLException;
 
 	public Description getDescription() {
 		return description;

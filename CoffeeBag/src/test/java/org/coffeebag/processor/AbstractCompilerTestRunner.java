@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * TODO support for compiling multiple files in a package structure
+ *
  * A compilerTestRunner represents a suite of tests to be run against a compiler.
  *
  * This test runner will scan the directory defined by getTestPath() for pairs of files:
@@ -66,7 +68,7 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 		for (AbstractCompilerTest test : tests) {
 			notifier.fireTestStarted(test.getDescription());
 			try {
-				test.run();
+				test.run(CheckVisibility.testMode());
 			} catch (Exception e) {
 				notifier.fireTestFailure(new Failure(test.getDescription(), e));
 			}
