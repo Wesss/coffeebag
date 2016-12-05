@@ -8,10 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.HashSet;
-import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
 import static org.truth0.Truth.ASSERT;
 
 public class VisibilityCheckerTest extends AbstractCompilerTest {
