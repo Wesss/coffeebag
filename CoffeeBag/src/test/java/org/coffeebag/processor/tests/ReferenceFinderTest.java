@@ -1,5 +1,6 @@
-package org.coffeebag.processor;
+package org.coffeebag.processor.tests;
 
+import org.coffeebag.processor.ReferenceFinderRunner;
 import org.junit.runner.RunWith;
 
 /**
@@ -8,6 +9,6 @@ import org.junit.runner.RunWith;
  * Behavior is defined in the {@link ReferenceFinderRunner} and {@link ReferenceFinderTest} classes.
  */
 @RunWith(ReferenceFinderRunner.class)
-public class ReferenceFinder {
+public class ReferenceFinderTest {
 
 }
