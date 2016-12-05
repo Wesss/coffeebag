@@ -77,11 +77,17 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * @param varType the type of a variable
 	 */
 	private void handleTypeTree(Tree varType) {
+		
 		Log.d(TAG, "handleTypeTree(" + varType + ")");
 		switch (varType.getKind()) {
 		case MEMBER_SELECT:
 			// Type name is a fully-qualified type
-			mTypes.add(varType.toString());
+			// (Look for the type to see if it is an inner class instead of a fully qualified name)
+			final TypeElement typeElement = mEnv.getElementUtils().getTypeElement(varType.toString());
+			if (typeElement != null) {
+				Log.d(TAG, "Resolved fully-qualified type " + varType.toString());
+				mTypes.add(varType.toString());
+			}
 			break;
 		case IDENTIFIER:
 			// Type name is an unqualified ID

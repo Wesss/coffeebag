@@ -12,8 +12,14 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.UnionType;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementScanner8;
 import javax.lang.model.util.Types;
 
@@ -86,6 +92,7 @@ public class ReferenceFinder {
 				} else {
 					// Single-class import
 					Log.d(TAG, "Single-class import of " + qualifiedId);
+					mImports.add(new Import(ImportType.TYPE, qualifiedId.toString()));
 					mTypes.add(qualifiedId.toString());
 				}
 			}
@@ -147,10 +154,12 @@ public class ReferenceFinder {
 		@Override
 		public Void visitType(TypeElement e, Void p) {
 			Log.d(TAG, "Visiting type " + e);
+			final Types types = mEnv.getTypeUtils();
 			mTypes.add(e.getSuperclass().toString());
 			for (TypeMirror implInterface : e.getInterfaces()) {
-				Log.v(TAG, "Adding implemented interface " + implInterface);
-				mTypes.add(implInterface.toString());
+				final TypeMirror erased = types.erasure(implInterface);
+				Log.v(TAG, "Adding implemented interface " + erased);
+				mTypes.add(erased.toString());
 			}
 			for (TypeParameterElement typeParam : e.getTypeParameters()) {
 				visitTypeParameter(typeParam, p);
@@ -162,22 +171,89 @@ public class ReferenceFinder {
 		@Override
 		public Void visitExecutable(ExecutableElement e, Void p) {
 			Log.d(TAG, "Visiting executable " + e);
-			if (e.getReturnType().getKind().equals(TypeKind.DECLARED)) {
-				Log.v(TAG, "Adding executable return type " + e.getReturnType());
-				mTypes.add(e.getReturnType().toString());
-			}
+			final TypeMirror returnType = e.getReturnType();
+			handleTypeMirror(returnType);
 			for (TypeMirror exceptionType : e.getThrownTypes()) {
-				Log.v(TAG, "Adding exception type " + exceptionType);
-				mTypes.add(exceptionType.toString());
+				handleTypeMirror(exceptionType);
 			}
 			for (TypeParameterElement typeParam : e.getTypeParameters()) {
 				for (TypeMirror bound : typeParam.getBounds()) {
-					Log.v(TAG, "Adding executable type bound " + bound);
-					mTypes.add(bound.toString());
+					handleTypeMirror(bound);
 				}
 			}
 			super.visitExecutable(e, p);
 			return null;
+		}
+		
+		/**
+		 * Processes a type mirror and adds relevant types
+		 * @param type the type to process
+		 */
+		private void handleTypeMirror(TypeMirror type) {
+			if (type == null) {
+				return;
+			}
+			switch (type.getKind()) {
+			case ARRAY:
+				handleArrayType((ArrayType) type);
+				break;
+			case DECLARED:
+				handleDeclaredType((DeclaredType) type);
+				break;
+			case INTERSECTION:
+				handleIntersectionType((IntersectionType) type);
+				break;
+			case TYPEVAR:
+				handleTypeVar((TypeVariable) type);
+				break;
+			case UNION:
+				handleUnionType((UnionType) type);
+				break;
+			case WILDCARD:
+				handleWildcardType((WildcardType) type);
+				break;
+			default:
+				Log.v(TAG, "Ignoring type " + type + " with kind " + type.getKind());
+				break;
+			
+			}
+		}
+		
+		private void handleArrayType(ArrayType type) {
+			handleTypeMirror(type.getComponentType());
+		}
+		
+		private void handleDeclaredType(DeclaredType type) {
+			// Handle arguments
+			for (TypeMirror typeArg : type.getTypeArguments()) {
+				handleTypeMirror(typeArg);
+			}
+			// Add the erasure of this type
+			final Types types = mEnv.getTypeUtils();
+			final TypeMirror erased = types.erasure(type);
+			mTypes.add(erased.toString());
+		}
+		
+		private void handleIntersectionType(IntersectionType type) {
+			for (TypeMirror bound : type.getBounds()) {
+				handleTypeMirror(bound);
+			}
+		}
+		
+		private void handleTypeVar(TypeVariable type) {
+			handleTypeMirror(type.getLowerBound());
+			handleTypeMirror(type.getUpperBound());
+		}
+		
+		private void handleUnionType(UnionType type) {
+			for (TypeMirror option : type.getAlternatives()) {
+				handleTypeMirror(option);
+			}
+		}
+		
+		private void handleWildcardType(WildcardType type) {
+			handleTypeMirror(type.getExtendsBound());
+			handleTypeMirror(type.getSuperBound());
 		}
 
 		@Override
