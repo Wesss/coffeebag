@@ -22,9 +22,20 @@ import java.util.List;
  */
 public abstract class AbstractCompilerTestRunner extends Runner {
 
+	/**
+	 * The description of this group of tests, containing the description of each test
+	 */
 	private Description description;
+	/**
+	 * The tests to run
+	 */
 	private final List<AbstractCompilerTest> tests;
 
+	/**
+	 * Creates a test runner
+	 * @param testClass the test class being executed
+	 * @throws IOException if a file could not be read
+	 */
 	public AbstractCompilerTestRunner(Class<?> testClass) throws IOException {
 		// Find test files
 		tests = new ArrayList<>();
@@ -63,6 +74,9 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 		return description;
 	}
 
+	/**
+	 * Runs the tests
+	 */
 	@Override
 	public void run(RunNotifier notifier) {
 		for (AbstractCompilerTest test : tests) {

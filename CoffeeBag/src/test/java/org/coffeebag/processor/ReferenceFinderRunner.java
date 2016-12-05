@@ -3,6 +3,9 @@ package org.coffeebag.processor;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Runs {@link ReferenceFinderTest} tests
+ */
 public class ReferenceFinderRunner extends AbstractCompilerTestRunner {
 
 	public ReferenceFinderRunner(Class<?> testClass) throws IOException {

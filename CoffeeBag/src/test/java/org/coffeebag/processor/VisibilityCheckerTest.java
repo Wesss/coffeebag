@@ -7,15 +7,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 import static org.truth0.Truth.ASSERT;
 
 public class VisibilityCheckerTest extends AbstractCompilerTest {
 
-	private static String syntaxErrorCompileExpectation =
+	private static final String syntaxErrorCompileExpectation =
 			"Syntax Error: line 1 of a VisibilityCheckerTest must contain only \"pass\" or \"fail\"";
-	private static String syntaxErrorTooManyLines = "Syntax Error: line 1 of a VisibilityCheckerTest must " +
+	private static final String syntaxErrorTooManyLines = "Syntax Error: line 1 of a VisibilityCheckerTest must " +
 			"contain only \"pass\" or \"fail\"";
 
 	private boolean expectPass = true; //pass by default
@@ -48,7 +47,7 @@ public class VisibilityCheckerTest extends AbstractCompilerTest {
 	}
 
 	@Override
-	public void run(CheckVisibility processor) throws MalformedURLException {
+	public void run(CheckVisibility processor) throws Exception {
 		if (expectPass) {
 			ASSERT.about(JavaSourceSubjectFactory.javaSource())
 					.that(JavaFileObjects.forResource(getSource().toURI().toURL()))

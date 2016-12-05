@@ -7,13 +7,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.truth0.Truth.ASSERT;
 
+/**
+ * A test that checks the classes referenced by a source file
+ */
 public class ReferenceFinderTest extends AbstractCompilerTest {
 	/**
 	 * The names of the classes referenced in the code
@@ -35,7 +37,7 @@ public class ReferenceFinderTest extends AbstractCompilerTest {
 	}
 
 	@Override
-	public void run(CheckVisibility processor) throws MalformedURLException {
+	public void run(CheckVisibility processor) throws Exception {
 		ASSERT.about(JavaSourceSubjectFactory.javaSource())
 				.that(JavaFileObjects.forResource(getSource().toURI().toURL()))
 				.processedWith(processor)

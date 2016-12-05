@@ -1,10 +1,8 @@
 package org.coffeebag.processor;
 
-import org.junit.runner.Description;
-
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
+
+import org.junit.runner.Description;
 
 /**
  * This represents a single compilation test to be run
@@ -19,8 +17,13 @@ public abstract class AbstractCompilerTest {
 	 */
 	private final File source;
 
-	public AbstractCompilerTest(File sourceFile, File referenceFile, Class<?> testClass)
-			throws IOException {
+	/**
+	 * Creates a test
+	 * @param sourceFile the Java source file to compile
+	 * @param referenceFile a file with information on the expected results
+	 * @param testClass the test class being executed
+	 */
+	public AbstractCompilerTest(File sourceFile, File referenceFile, Class<?> testClass) {
 		this.source = sourceFile;
 
 		final String testName = sourceFile.getName().replaceFirst("\\.java$", "");
@@ -28,14 +31,23 @@ public abstract class AbstractCompilerTest {
 	}
 
 	/**
-	 * run the test
+	 * Runs the test
+	 * @throws Exception if the test fails or an error occurs
 	 */
-	public abstract void run(CheckVisibility processor) throws MalformedURLException;
+	public abstract void run(CheckVisibility processor) throws Exception;
 
+	/**
+	 * Returns a description of this test
+	 * @return a description
+	 */
 	public Description getDescription() {
 		return description;
 	}
 
+	/**
+	 * Returns the source file that this test compiles
+	 * @return the source file
+	 */
 	public File getSource() {
 		return source;
 	}
