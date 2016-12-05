@@ -10,17 +10,19 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Types;
 
+import org.coffeebag.domain.Import;
+import org.coffeebag.log.Log;
+
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreeScanner;
-import org.coffeebag.domain.Import;
 
 /**
  * Visits AST nodes and scans for used types
  */
 class ReferenceVisitor extends TreeScanner<Void, Void> {
-
+	private static final String TAG = ReferenceVisitor.class.getSimpleName();
 	/**
 	 * The processing environment
 	 */
@@ -62,9 +64,9 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 
 	@Override
 	public Void visitVariable(VariableTree tree, Void arg1) {
-		System.out.println("[Tree] Visiting variable " + tree);
-		System.out.println("[Tree] Type kind: " + tree.getType().getKind());
-		System.out.println("[Tree] Type string: " + tree.getType());
+		Log.d(TAG, "Visiting variable " + tree);
+		Log.d(TAG, "Type kind: " + tree.getType().getKind());
+		Log.d(TAG, "Type string: " + tree.getType());
 		Tree varType = tree.getType();
 		handleTypeTree(varType);
 		return super.visitVariable(tree, arg1);
@@ -75,7 +77,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * @param varType the type of a variable
 	 */
 	private void handleTypeTree(Tree varType) {
-		System.out.println("[Tree] handleTypeTree(" + varType + ")");
+		Log.d(TAG, "handleTypeTree(" + varType + ")");
 		switch (varType.getKind()) {
 		case MEMBER_SELECT:
 			// Type name is a fully-qualified type
@@ -84,7 +86,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		case IDENTIFIER:
 			// Type name is an unqualified ID
 			final String qualified = resolveUnqualifiedType(varType.toString());
-			System.out.println("[Tree] Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
+			Log.d(TAG, "Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
 			if (qualified != null) {
 				mTypes.add(qualified);
 			}
@@ -93,9 +95,16 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			final ParameterizedTypeTree parameterized = (ParameterizedTypeTree) varType;
 			// The type of the parameterized type should be resolved like any other type
 			handleTypeTree(parameterized.getType());
+			// Also do all the type parameters
+			for (Tree typeParam : parameterized.getTypeArguments()) {
+				handleTypeTree(typeParam);
+			}
+			break;
+		case PRIMITIVE_TYPE:
+			// Ignore
 			break;
 		default:
-			System.out.println("[Tree] Variable type has unexpected kind " + varType.getKind());
+			Log.d(TAG, "Variable type has unexpected kind " + varType.getKind());
 			break;
 		}
 	}
@@ -110,8 +119,9 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 *         not be resolved
 	 */
 	private String resolveUnqualifiedType(String unqualifiedName) {
+		Log.v(TAG, "resolveUnqualifiedType(" + unqualifiedName + ")");
 		for (Import anImport : mImports) {
-			System.out.printf("[Tree] Looking for \"%s\" in import \"%s\"\n", unqualifiedName, anImport);
+			Log.d(TAG, String.format("Looking for \"%s\" in import \"%s\"", unqualifiedName, anImport));
 			switch (anImport.getType()) {
 			case TYPE:
 				if (anImport.getScope().endsWith("." + unqualifiedName)) {

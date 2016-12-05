@@ -19,6 +19,7 @@ import javax.lang.model.util.Types;
 
 import org.coffeebag.domain.Import;
 import org.coffeebag.domain.Import.ImportType;
+import org.coffeebag.log.Log;
 
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ImportTree;
@@ -33,6 +34,7 @@ import com.sun.source.util.Trees;
  *
  */
 public class ReferenceFinder {
+	private static final String TAG = ReferenceFinder.class.getSimpleName();
 	
 	/**
 	 * The processing environment
@@ -59,6 +61,7 @@ public class ReferenceFinder {
 	 * @param source the source to analyze
 	 */
 	public ReferenceFinder(ProcessingEnvironment env, Element source) {
+		Log.d(TAG, "-------- ReferenceFinder running on " + source.getSimpleName() + " --------");
 		mEnv = env;
 		mTrees = Trees.instance(env);
 		mTypes = new HashSet<>();
@@ -72,27 +75,32 @@ public class ReferenceFinder {
 		
 		for (ImportTree importTree : imports) {
 			final Tree qualifiedId = importTree.getQualifiedIdentifier();
-			System.out.println("Import tree kind: " + importTree.getKind());
-			System.out.println("Import tree qualified ID kind: " + qualifiedId.getKind());
+			Log.d(TAG, "Import tree kind: " + importTree.getKind());
+			Log.d(TAG, "Import tree qualified ID kind: " + qualifiedId.getKind());
 			if (qualifiedId.getKind().equals(Tree.Kind.MEMBER_SELECT)) {
 				final MemberSelectTree idReference = (MemberSelectTree) qualifiedId;
 				if (idReference.getIdentifier().contentEquals("*")) {
 					// Glob import
-					System.out.println("Glob import of package " + idReference.getExpression());
+					Log.d(TAG, "Glob import of package " + idReference.getExpression());
 					mImports.add(new Import(ImportType.GLOB, idReference.getExpression().toString()));
 				} else {
 					// Single-class import
+					Log.d(TAG, "Single-class import of " + qualifiedId);
 					mTypes.add(qualifiedId.toString());
 				}
 			}
 		}
 		
+		Log.i(TAG, "-------- Starting ReferenceScanner --------");
 		final ReferenceScanner scanner = new ReferenceScanner();
 		scanner.scan(source);
+		Log.i(TAG, "-------- ReferenceScanner done --------");
 		
+		Log.i(TAG, "-------- Starting ReferenceVisitor --------");
 		final ReferenceVisitor visitor = new ReferenceVisitor(env, mImports);
 		compilationUnit.accept(visitor, null);
 		mTypes.addAll(visitor.getTypes());
+		Log.i(TAG, "-------- ReferenceVisitor done --------");
 		
 		// Post-process
 		// Remove java.lang
@@ -121,9 +129,9 @@ public class ReferenceFinder {
 
 		@Override
 		public Void visitVariable(VariableElement e, Void p) {
-			System.out.println("Visiting variable " + e);
-			System.out.println("Variable type is " + e.asType());
-			System.out.println("Variable type kind: " + e.asType().getKind());
+			Log.d(TAG, "Visiting variable " + e);
+			Log.d(TAG, "Variable type is " + e.asType());
+			Log.d(TAG, "Variable type kind: " + e.asType().getKind());
 			
 			final Types types = mEnv.getTypeUtils();
 			
@@ -138,10 +146,14 @@ public class ReferenceFinder {
 
 		@Override
 		public Void visitType(TypeElement e, Void p) {
-			System.out.println("Visiting type " + e);
+			Log.d(TAG, "Visiting type " + e);
 			mTypes.add(e.getSuperclass().toString());
 			for (TypeMirror implInterface : e.getInterfaces()) {
+				Log.v(TAG, "Adding implemented interface " + implInterface);
 				mTypes.add(implInterface.toString());
+			}
+			for (TypeParameterElement typeParam : e.getTypeParameters()) {
+				visitTypeParameter(typeParam, p);
 			}
 			super.visitType(e, p);
 			return null;
@@ -149,15 +161,18 @@ public class ReferenceFinder {
 
 		@Override
 		public Void visitExecutable(ExecutableElement e, Void p) {
-			System.out.println("Visiting executable " + e);
+			Log.d(TAG, "Visiting executable " + e);
 			if (e.getReturnType().getKind().equals(TypeKind.DECLARED)) {
+				Log.v(TAG, "Adding executable return type " + e.getReturnType());
 				mTypes.add(e.getReturnType().toString());
 			}
 			for (TypeMirror exceptionType : e.getThrownTypes()) {
+				Log.v(TAG, "Adding exception type " + exceptionType);
 				mTypes.add(exceptionType.toString());
 			}
 			for (TypeParameterElement typeParam : e.getTypeParameters()) {
 				for (TypeMirror bound : typeParam.getBounds()) {
+					Log.v(TAG, "Adding executable type bound " + bound);
 					mTypes.add(bound.toString());
 				}
 			}
@@ -167,10 +182,12 @@ public class ReferenceFinder {
 
 		@Override
 		public Void visitTypeParameter(TypeParameterElement e, Void p) {
-			System.out.println("Visiting type parameter " + e);
-			mTypes.add(e.asType().toString());
-			super.visitTypeParameter(e, p);
-			return null;
+			Log.d(TAG, "Visiting type parameter " + e);
+			for (TypeMirror typeBound : e.getBounds()) {
+				Log.v(TAG, "Adding type generic type bound " + typeBound);
+				mTypes.add(typeBound.toString());
+			}
+			return super.visitTypeParameter(e, p);
 		}
 	}
 }
