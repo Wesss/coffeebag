@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,7 +50,7 @@ public class VisibilityCheckerTest extends AbstractCompilerTest {
 	}
 
 	@Override
-	public void run(CheckVisibility processor) throws MalformedURLException {
+	public void run(CheckVisibility processor) throws Exception {
 		if (expectPass) {
 			ASSERT.about(JavaSourceSubjectFactory.javaSource())
 					.that(JavaFileObjects.forResource(getSource().toURI().toURL()))
