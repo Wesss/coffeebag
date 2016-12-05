@@ -43,6 +43,7 @@ public class CheckVisibility extends AbstractProcessor {
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		if (!roundEnv.processingOver()) {
 			for (Element element : roundEnv.getRootElements()) {
+				System.out.println("Processing root " + element);
 				final ReferenceFinder finder = new ReferenceFinder(processingEnv, element);
 				final Set<String> usedTypes = finder.getTypesUsed();
 				
@@ -51,13 +52,23 @@ public class CheckVisibility extends AbstractProcessor {
 					typeReferences.put(element.asType().toString(), usedTypes);
 				}
 				
-				String message = "Element " + element + " used these types:";
+				StringBuilder message = new StringBuilder()
+						.append("Element ")
+						.append(element)
+						.append(" used these types:");
 				for (String used : usedTypes) {
-					message +="\n\t" + used;
+					message.append("\n\t").append(used);
 				}
-				processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, message, element);
+				System.out.println(message);
+				// processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, message, element);
 				// processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "DIE COMPILER, DIE!", element);
 			}
+
+			for (TypeElement annotation : annotations) {
+				System.out.println("Processing annotation " + annotation);
+			}
+		} else {
+			System.out.println("Processing over");
 		}
 		// Allow other annotations to be processed
 		return false;
