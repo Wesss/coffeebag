@@ -1,17 +1,11 @@
 package org.coffeebag.processor;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
-/**
- * Runs tests (read from files) on the ReferenceFinder class
- */
 public class ReferenceFinderRunner extends AbstractCompilerTestRunner {
 
-	public ReferenceFinderRunner(Class<?> testClass) throws FileNotFoundException, IOException {
+	public ReferenceFinderRunner(Class<?> testClass) throws IOException {
 		super(testClass);
 	}
 

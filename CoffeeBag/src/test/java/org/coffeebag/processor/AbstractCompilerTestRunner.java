@@ -7,25 +7,23 @@ import org.junit.runner.notification.RunNotifier;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A compilerTestRunner represents a suite of tests to be run against a compiler.
+ *
+ * This test runner will scan the directory defined by getTestPath() for pairs of files:
+ * .java files (for compilation) and .txt files (for expectation). It will then instantiate
+ * a {@link AbstractCompilerTest} object and run it as part of a test suite.
+ */
 public abstract class AbstractCompilerTestRunner extends Runner {
-	/**
-	 * The test class being executed
-	 */
-	private final Class<?> testClass;
 
-	/**
-	 * The tests to run
-	 */
+	private Description description;
 	private final List<AbstractCompilerTest> tests;
 
-	public AbstractCompilerTestRunner(Class<?> testClass) throws FileNotFoundException, IOException {
-		this.testClass = testClass;
-
+	public AbstractCompilerTestRunner(Class<?> testClass) throws IOException {
 		// Find test files
 		tests = new ArrayList<>();
 		final File dataDir = new File(getTestPath());
@@ -37,41 +35,42 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 				tests.add(createTest(sourceFile, textFile, testClass));
 			}
 		}
+
+		// generate description
+		description = Description.createSuiteDescription(testClass);
+		for (AbstractCompilerTest test : tests) {
+			description.addChild(test.getDescription());
+		}
 	}
 
 	/**
-	 * TODO
-	 * @return
+	 * @return the path to the testfiles relative to the root directory
 	 */
 	public abstract String getTestPath();
 
 	/**
-	 * TODO
-	 * @param sourceFile
-	 * @param textFile
-	 * @return
+	 * Create a test to run in the test suite
+	 * @param sourceFile the .java source file to compile
+	 * @param textFile the .txt file that contains expectations
+	 * @return a test to be run against the compiler
 	 */
 	public abstract AbstractCompilerTest createTest(File sourceFile, File textFile, Class<?> testClass) throws IOException;
 
 	@Override
 	public Description getDescription() {
-		final Description top = Description.createSuiteDescription(testClass);
-		for (AbstractCompilerTest test : tests) {
-			top.addChild(test.description);
-		}
-		return top;
+		return description;
 	}
 
 	@Override
 	public void run(RunNotifier notifier) {
 		for (AbstractCompilerTest test : tests) {
-			notifier.fireTestStarted(test.description);
+			notifier.fireTestStarted(test.getDescription());
 			try {
 				test.run();
 			} catch (Exception e) {
-				notifier.fireTestFailure(new Failure(test.description, e));
+				notifier.fireTestFailure(new Failure(test.getDescription(), e));
 			}
-			notifier.fireTestFinished(test.description);
+			notifier.fireTestFinished(test.getDescription());
 		}
 	}
 }
