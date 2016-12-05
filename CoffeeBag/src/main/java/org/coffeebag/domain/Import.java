@@ -1,4 +1,4 @@
-package org.coffeebag.processor.references;
+package org.coffeebag.domain;
 
 /**
  * Imports that may be found in a source file
@@ -57,23 +57,17 @@ public class Import {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Import other = (Import) obj;
-		if (scope == null) {
-			if (other.scope != null)
-				return false;
-		} else if (!scope.equals(other.scope))
-			return false;
-		if (type != other.type)
-			return false;
-		return true;
+		return scope.equals(other.scope)&&
+				type == other.type;
 	}
-	
+
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
@@ -89,5 +83,4 @@ public class Import {
 		}
 		return builder.toString();
 	}
-	
 }

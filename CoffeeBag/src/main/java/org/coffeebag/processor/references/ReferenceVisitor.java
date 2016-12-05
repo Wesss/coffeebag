@@ -14,6 +14,7 @@ import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreeScanner;
+import org.coffeebag.domain.Import;
 
 /**
  * Visits AST nodes and scans for used types

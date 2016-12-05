@@ -17,7 +17,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
 import javax.lang.model.util.Types;
 
-import org.coffeebag.processor.references.Import.ImportType;
+import org.coffeebag.domain.Import;
+import org.coffeebag.domain.Import.ImportType;
 
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ImportTree;
