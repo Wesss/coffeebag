@@ -8,33 +8,60 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This represents all of CoffeeBag's visibility invariants
+ * This is a building set of all of CoffeeBag's visibility invariants
  */
 public class VisibilityInvariants {
 	// classes and interfaces (including enums)
-	private Set<TypeElement> accessAnnotatedTypeElements;
+	private Set<TypeElement> typeElements;
 
-	// fields TODO find more specific type that represents fields?
-	private Set<VariableElement> accessAnnotatedFieldElements;
+	// fields
+	private Set<VariableElement> fieldElements;
 
 	// methods, constructors
-	private Set<ExecutableElement> accessAnnotatedExecutableElements;
+	private Set<ExecutableElement> executableElements;
 
 	public VisibilityInvariants() {
-		accessAnnotatedTypeElements = new HashSet<>();
-		accessAnnotatedFieldElements = new HashSet<>();
-		accessAnnotatedExecutableElements = new HashSet<>();
+		typeElements = new HashSet<>();
+		fieldElements = new HashSet<>();
+		executableElements = new HashSet<>();
+	}
+
+	public void addTypeElement(TypeElement element) {
+		typeElements.add(element);
+	}
+
+	public void addFieldElement(VariableElement element) {
+		fieldElements.add(element);
+	}
+
+	public void addExecutableElement(ExecutableElement element) {
+		executableElements.add(element);
+	}
+
+	public void addAll(VisibilityInvariants other) {
+		typeElements.addAll(other.getTypeElements());
+		fieldElements.addAll(other.getFieldElements());
+		executableElements.addAll(other.getExcecutableElements());
 	}
 
 	public Set<TypeElement> getTypeElements() {
-		return Collections.unmodifiableSet(accessAnnotatedTypeElements);
+		return Collections.unmodifiableSet(typeElements);
 	}
 
 	public Set<VariableElement> getFieldElements() {
-		return Collections.unmodifiableSet(accessAnnotatedFieldElements);
+		return Collections.unmodifiableSet(fieldElements);
 	}
 
 	public Set<ExecutableElement> getExcecutableElements() {
-		return Collections.unmodifiableSet(accessAnnotatedExecutableElements);
+		return Collections.unmodifiableSet(executableElements);
+	}
+
+	public VisibilityInvariants unmodifiable() {
+		VisibilityInvariants unmodifiable = new VisibilityInvariants();
+		unmodifiable.addAll(this);
+		unmodifiable.typeElements = Collections.unmodifiableSet(typeElements);
+		unmodifiable.fieldElements = Collections.unmodifiableSet(fieldElements);
+		unmodifiable.executableElements = Collections.unmodifiableSet(executableElements);
+		return unmodifiable;
 	}
 }
