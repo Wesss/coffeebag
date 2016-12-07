@@ -30,7 +30,7 @@ public class InvariantVisitor extends TreeScanner<Void, Void> {
 	public Void visitClass(ClassTree tree, Void v) {
 		Log.d(TAG, "Class " + tree.getSimpleName() + ":\n" +
 				tree.getModifiers().getAnnotations().toString());
-		invariants.addTypeElement((TypeElement)getElement(tree)); // TODO fix horrible cast
+		invariants.addClassInvariant((TypeElement)getElement(tree)); // TODO fix horrible cast
 		return super.visitClass(tree, v);
 	}
 
