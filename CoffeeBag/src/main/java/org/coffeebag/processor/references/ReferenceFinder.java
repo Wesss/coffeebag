@@ -99,7 +99,7 @@ public class ReferenceFinder {
 		}
 		
 		Log.i(TAG, "-------- Starting ReferenceScanner --------");
-		final ReferenceScanner scanner = new ReferenceScanner();
+		final ReferenceScanner scanner = new ReferenceScanner(mEnv, mTypes, mImports);
 		scanner.scan(source);
 		Log.i(TAG, "-------- ReferenceScanner done --------");
 		
@@ -132,7 +132,27 @@ public class ReferenceFinder {
 	 *
 	 * Works at the annotation processor level using standard interfaces
 	 */
-	private class ReferenceScanner extends ElementScanner8<Void, Void> {
+	private static class ReferenceScanner extends ElementScanner8<Void, Void> {
+		
+		/**
+		 * The processing environment
+		 */
+		private final ProcessingEnvironment mEnv;
+		/**
+		 * The names of the types that the code refers to
+		 */
+		private final Set<String> mTypes;
+		
+		/**
+		 * The imports
+		 */
+		private final Set<Import> mImports;
+		
+		public ReferenceScanner(ProcessingEnvironment env, Set<String> types, Set<Import> imports) {
+			this.mEnv = env;
+			this.mTypes = types;
+			this.mImports = imports;
+		}
 
 		@Override
 		public Void visitVariable(VariableElement e, Void p) {

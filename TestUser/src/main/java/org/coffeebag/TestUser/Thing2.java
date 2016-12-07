@@ -2,8 +2,16 @@ package org.coffeebag.TestUser;
 
 import java.util.Collections;
 import java.util.List;
+import static org.coffeebag.TestUser.p2.Collision.name;
 
 public class Thing2 {
+	public Thing2() {
+		// Modify Collision.name
+		// Both the field and the method are imported
+		name = 3;
+		name();
+	}
+	
 	private void reticulate() {
 		discombobulate("hydrogen");
 	}
