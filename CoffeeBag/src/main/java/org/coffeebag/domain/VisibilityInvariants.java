@@ -1,40 +1,66 @@
 package org.coffeebag.domain;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This represents all of CoffeeBag's visibility invariants
+ * This is a building set of all of CoffeeBag's visibility invariants
  */
 public class VisibilityInvariants {
-	// classes and interfaces (including enums)
-	private Set<TypeElement> accessAnnotatedTypeElements;
+	// classes
+	private Set<VisibilityInvariant> classTreePaths;
 
-	// fields TODO find more specific type that represents fields?
-	private Set<VariableElement> accessAnnotatedFieldElements;
+	// fields
+//	private Set<TreePath> fieldTreePaths;
+//
+//	// methods
+//	private Set<TreePath> methodTreePaths;
 
-	// methods, constructors
-	private Set<ExecutableElement> accessAnnotatedExecutableElements;
+	//TODO enums, interfaces, constructors, ??
 
 	public VisibilityInvariants() {
-		accessAnnotatedTypeElements = new HashSet<>();
-		accessAnnotatedFieldElements = new HashSet<>();
-		accessAnnotatedExecutableElements = new HashSet<>();
+		classTreePaths = new HashSet<>();
+//		fieldTreePaths = new HashSet<>();
+//		methodTreePaths = new HashSet<>();
 	}
 
-	public Set<TypeElement> getTypeElements() {
-		return Collections.unmodifiableSet(accessAnnotatedTypeElements);
+	public void addClassInvariant(VisibilityInvariant classTree) {
+		classTreePaths.add(classTree);
 	}
 
-	public Set<VariableElement> getFieldElements() {
-		return Collections.unmodifiableSet(accessAnnotatedFieldElements);
+//	public void addFieldInvariant(TreePath fieldTree) {
+//		fieldTreePaths.add(fieldTree);
+//	}
+//
+//	public void addMethodInvariant(TreePath methodTree) {
+//		methodTreePaths.add(methodTree);
+//	}
+
+	public void addAll(VisibilityInvariants other) {
+		classTreePaths.addAll(other.getClassInvariants());
+//		fieldTreePaths.addAll(other.getFieldTreePaths());
+//		methodTreePaths.addAll(other.getExcecutableElements());
 	}
 
-	public Set<ExecutableElement> getExcecutableElements() {
-		return Collections.unmodifiableSet(accessAnnotatedExecutableElements);
+	public Set<VisibilityInvariant> getClassInvariants() {
+		return Collections.unmodifiableSet(classTreePaths);
+	}
+
+//	public Set<TreePath> getFieldTreePaths() {
+//		return Collections.unmodifiableSet(fieldTreePaths);
+//	}
+//
+//	public Set<TreePath> getExcecutableElements() {
+//		return Collections.unmodifiableSet(methodTreePaths);
+//	}
+
+	public VisibilityInvariants unmodifiable() {
+		VisibilityInvariants unmodifiable = new VisibilityInvariants();
+		unmodifiable.addAll(this);
+		unmodifiable.classTreePaths = Collections.unmodifiableSet(classTreePaths);
+//		unmodifiable.fieldTreePaths = Collections.unmodifiableSet(fieldTreePaths);
+//		unmodifiable.methodTreePaths = Collections.unmodifiableSet(methodTreePaths);
+		return unmodifiable;
 	}
 }
