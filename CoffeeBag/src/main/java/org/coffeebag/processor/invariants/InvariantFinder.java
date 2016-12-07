@@ -15,10 +15,9 @@ public class InvariantFinder {
 
 	public InvariantFinder(ProcessingEnvironment env, Element elementRoot) {
 		trees = Trees.instance(env);
-		CompilationUnitTree treeRoot = trees.getPath(elementRoot).getCompilationUnit();
-		visitor = new InvariantVisitor(trees, treeRoot);
+		visitor = new InvariantVisitor(trees, trees.getPath(elementRoot).getCompilationUnit());
 
-		visitor.scan(trees.getTree(elementRoot), null);
+		visitor.scanFromRoot();
 	}
 
 	/**
