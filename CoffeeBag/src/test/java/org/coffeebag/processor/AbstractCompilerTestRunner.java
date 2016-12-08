@@ -1,15 +1,16 @@
 package org.coffeebag.processor;
 
-import org.junit.runner.Description;
-import org.junit.runner.Runner;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.coffeebag.processor.CheckVisibility.Config;
+import org.junit.runner.Description;
+import org.junit.runner.Runner;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 
 /**
  * TODO support for compiling multiple files in a package structure
@@ -82,7 +83,8 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 		for (AbstractCompilerTest test : tests) {
 			notifier.fireTestStarted(test.getDescription());
 			try {
-				test.run(CheckVisibility.testMode());
+				final CheckVisibility processor = new CheckVisibility(new Config(false, true));
+				test.run(processor);
 			} catch (Throwable e) {
 				notifier.fireTestFailure(new Failure(test.getDescription(), e));
 			}

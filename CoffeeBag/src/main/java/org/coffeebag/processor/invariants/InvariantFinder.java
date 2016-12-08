@@ -1,11 +1,12 @@
 package org.coffeebag.processor.invariants;
 
-import org.coffeebag.domain.VisibilityInvariant;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.coffeebag.domain.VisibilityInvariant;
 
 public class InvariantFinder {
 	private static final String TAG = InvariantFinder.class.getSimpleName();

@@ -24,35 +24,68 @@ public class CheckVisibility extends AbstractProcessor {
 	private static final String TAG = CheckVisibility.class.getSimpleName();
 	
 	/**
-	 * Creates a processor in test mode
-	 * 
-	 * The returned processor will record information about its operations. It will return a non-null value from
-	 * {@link #getTypeReferences()}.
-	 * @return a new processor
+	 * Preprocessor configuration
 	 */
-	static CheckVisibility testMode() {
-		final CheckVisibility processor = new CheckVisibility();
-		processor.typeReferences = new HashMap<>();
-		return processor;
+	public static class Config {
+		public final boolean log;
+		public final boolean recordTestData;
+		/**
+		 * Creates a new configuration
+		 * @param log if the processor should output log information
+		 * @param recordTestData if the processor should record information that is useful for testing
+		 */
+		public Config(boolean log, boolean recordTestData) {
+			this.log = log;
+			this.recordTestData = recordTestData;
+		}
+		private static final Config TEST_INSTANCE = new Config(true, true);
+		/**
+		 * Returns a configuration that enables logging and test data recording
+		 * @return a test configuration
+		 */
+		public static Config test() {
+			return TEST_INSTANCE;
+		}
 	}
-
-	public CheckVisibility() {
-		typeReferences = null;
-		annotatedMemberToInvariant = new HashMap<>();
-	}
-
+	
 	/**
-	 * Maps from a class name to a set of class/interface/enum/annotation names that it references
+	 * Maps from a class name to a set of canonical class/interface/enum names that it references
 	 * 
 	 * This is normally null. It is used in test mode to store results.
 	 */
 	private Map<String, Set<String>> typeReferences;
-
+	
 	/**
 	 *
 	 */
 	private Map<Element, VisibilityInvariant> annotatedMemberToInvariant;
+	
+	/**
+	 * Creates a new processor that does not log or record test data
+	 */
+	public CheckVisibility() {
+		this(null);
+	}
 
+	/**
+	 * Creates a new processor
+	 * @param config a configuration, or null to use the default configuration. The default configuration is no logging
+	 * and no test data recording.
+	 */
+	public CheckVisibility(Config config) {
+		typeReferences = null;
+		annotatedMemberToInvariant = new HashMap<>();
+		
+		if (config != null && config.log) {
+			Log.getInstance().setEnabled(true);
+		} else {
+			Log.getInstance().setEnabled(false);
+		}
+		if (config != null && config.recordTestData) {
+			typeReferences = new HashMap<>();
+		}
+	}
+	
 	@Override
 	public boolean process(Set<? extends TypeElement> typeElements, RoundEnvironment roundEnv) {
 		if (!roundEnv.processingOver()) {
@@ -82,7 +115,6 @@ public class CheckVisibility extends AbstractProcessor {
 				annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants());
 			}
 		} else {
-			System.out.println("Processing over");
 			// compare visibility invariants and their usages
 			// processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error msg", element);
 		}

@@ -99,7 +99,7 @@ public class ReferenceFinder {
 		}
 		
 		Log.i(TAG, "-------- Starting ReferenceScanner --------");
-		final ReferenceScanner scanner = new ReferenceScanner(mEnv, mTypes, mImports);
+		final ReferenceScanner scanner = new ReferenceScanner(mEnv, mTypes);
 		scanner.scan(source);
 		Log.i(TAG, "-------- ReferenceScanner done --------");
 		
@@ -146,15 +146,10 @@ public class ReferenceFinder {
 		 */
 		private final Set<String> mTypes;
 		
-		/**
-		 * The imports
-		 */
-		private final Set<Import> mImports;
 		
-		public ReferenceScanner(ProcessingEnvironment env, Set<String> types, Set<Import> imports) {
+		public ReferenceScanner(ProcessingEnvironment env, Set<String> types) {
 			this.mEnv = env;
 			this.mTypes = types;
-			this.mImports = imports;
 		}
 
 		@Override

@@ -44,7 +44,7 @@ public class ReferenceFinderTest extends AbstractCompilerTest {
 				.that(JavaFileObjects.forResource(getSource().toURI().toURL()))
 				.processedWith(processor)
 				.compilesWithoutError();
-
+		
 		// Check detected references
 		// 1. Flatten into one set
 		final Set<String> actualReferences = new HashSet<>();
