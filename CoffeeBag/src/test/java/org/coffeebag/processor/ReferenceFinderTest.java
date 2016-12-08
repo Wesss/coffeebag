@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.coffeebag.log.Log;
+
 import com.google.testing.compile.JavaFileObjects;
 import com.google.testing.compile.JavaSourceSubjectFactory;
 
@@ -44,7 +46,7 @@ public class ReferenceFinderTest extends AbstractCompilerTest {
 				.that(JavaFileObjects.forResource(getSource().toURI().toURL()))
 				.processedWith(processor)
 				.compilesWithoutError();
-
+		
 		// Check detected references
 		// 1. Flatten into one set
 		final Set<String> actualReferences = new HashSet<>();

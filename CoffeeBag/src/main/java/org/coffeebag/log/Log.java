@@ -43,8 +43,9 @@ public class Log {
 	public static Log getInstance() {
 		if (instance == null) {
 			instance = new Log();
+			// Enable by default
+			instance.enabled = true;
 		}
-		instance.enabled = true;
 		return instance;
 	}
 	
