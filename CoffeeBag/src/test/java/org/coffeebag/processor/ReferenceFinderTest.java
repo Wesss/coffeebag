@@ -1,17 +1,19 @@
 package org.coffeebag.processor;
 
-import com.google.testing.compile.JavaFileObjects;
-import com.google.testing.compile.JavaSourceSubjectFactory;
+import static org.junit.Assert.assertEquals;
+import static org.truth0.Truth.ASSERT;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.truth0.Truth.ASSERT;
+import com.google.testing.compile.JavaFileObjects;
+import com.google.testing.compile.JavaSourceSubjectFactory;
 
 /**
  * A test that checks the classes referenced by a source file
@@ -49,9 +51,14 @@ public class ReferenceFinderTest extends AbstractCompilerTest {
 		for (Set<String> typeReferences : processor.getTypeReferences().values()) {
 			actualReferences.addAll(typeReferences);
 		}
+		// 2. Convert to a list for more user-friendly comparison
+		final List<String> actualReferenceList = new ArrayList<>(actualReferences);
+		final List<String> expectedReferenceList = new ArrayList<>(this.referencedTypes);
+		actualReferenceList.sort(null);
+		expectedReferenceList.sort(null);
 
 		// Check
 		assertEquals("Incorrect references found",
-				this.referencedTypes, actualReferences);
+				expectedReferenceList, actualReferenceList);
 	}
 }

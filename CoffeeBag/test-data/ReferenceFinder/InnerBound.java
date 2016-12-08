@@ -9,8 +9,7 @@ import javax.swing.text.html.parser.*;
  */
 class InnerBound {
 	public void recombobulate() {
-		
-		
+
 		// javax.sound.sampled.AudioFormat
 		class InnerNamedExtendsImport extends AudioFormat {
 			public InnerNamedExtendsImport() {
@@ -19,7 +18,7 @@ class InnerBound {
 		}
 		// javax.naming.AuthenticationException
 		class InnerNamedExtendsGlob extends AuthenticationException {
-			
+
 		}
 		// javax.swing.text.ZoneVIew
 		class InnerExtendsFullyQualified extends javax.swing.text.ZoneView {
@@ -27,21 +26,30 @@ class InnerBound {
 				super(null, 0);
 			}
 		}
-		
+
 		// javax.swing.UIManager
 		UIManager anonymousExtendsImport = new UIManager() {
-			
+
 		};
-		
+
 		// javax.swing.text.html.parser.TagElement
 		TagElement anonymousExtendsGlob = new TagElement(null) {
-			
+
 		};
-		
+
 		// java.util.zip.ZipOutputStream
 		java.util.zip.ZipOutputStream anonymousExtendsFullyQualified = new java.util.zip.ZipOutputStream(null) {
-			
+
 		};
-		
+
+		// Generic classes
+
+		// javax.security.auth.login.AccountExpiredException
+		class ExtendsFullyQualified<T extends javax.security.auth.login.AccountExpiredException> {
+
+		}
+		// javax.security.auth.login.AccountLockedException
+		java.util.List<? super javax.security.auth.login.AccountLockedException> superFullyQualified;
+
 	}
 }

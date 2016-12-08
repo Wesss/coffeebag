@@ -13,10 +13,14 @@ import javax.lang.model.util.Types;
 import org.coffeebag.domain.Import;
 import org.coffeebag.log.Log;
 
+import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.WildcardTree;
 import com.sun.source.util.TreeScanner;
 
 /**
@@ -28,7 +32,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * The processing environment
 	 */
 	private final ProcessingEnvironment mEnv;
-	
+
 	/**
 	 * The packages that have all their classes imported using glob imports
 	 */
@@ -72,9 +76,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		handleTypeTree(varType);
 		return super.visitVariable(tree, arg1);
 	}
-	
-	
-	
+
 	@Override
 	public Void visitClass(ClassTree ct, Void arg1) {
 		// Check superclass and interfaces
@@ -88,17 +90,35 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		return super.visitClass(ct, arg1);
 	}
 
+	@Override
+	public Void visitTypeCast(TypeCastTree arg0, Void arg1) {
+		// Check target type
+		handleTypeTree(arg0.getType());
+		return super.visitTypeCast(arg0, arg1);
+	}
+
+	@Override
+	public Void visitTypeParameter(TypeParameterTree arg0, Void arg1) {
+		for (Tree bound : arg0.getBounds()) {
+			handleTypeTree(bound);
+		}
+		return super.visitTypeParameter(arg0, arg1);
+	}
+
 	/**
 	 * Interprets a tree that represents the type of a variable
-	 * @param varType the type of a variable
+	 * 
+	 * @param varType
+	 *            the type of a variable
 	 */
 	private void handleTypeTree(Tree varType) {
-		
+
 		Log.d(TAG, "handleTypeTree(" + varType + ")");
 		switch (varType.getKind()) {
 		case MEMBER_SELECT:
 			// Type name is a fully-qualified type
-			// (Look for the type to see if it is an inner class instead of a fully qualified name)
+			// (Look for the type to see if it is an inner class instead of a
+			// fully qualified name)
 			final TypeElement typeElement = mEnv.getElementUtils().getTypeElement(varType.toString());
 			if (typeElement != null) {
 				Log.d(TAG, "Resolved fully-qualified type " + varType.toString());
@@ -115,14 +135,27 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			break;
 		case PARAMETERIZED_TYPE:
 			final ParameterizedTypeTree parameterized = (ParameterizedTypeTree) varType;
-			// The type of the parameterized type should be resolved like any other type
+			// The type of the parameterized type should be resolved like any
+			// other type
 			handleTypeTree(parameterized.getType());
 			// Also do all the type parameters
 			for (Tree typeParam : parameterized.getTypeArguments()) {
 				handleTypeTree(typeParam);
 			}
 			break;
+		case SUPER_WILDCARD:
+			// ? super Class
+			handleTypeTree(((WildcardTree) varType).getBound());
+			break;
+		case EXTENDS_WILDCARD:
+			// ? extends Class
+			handleTypeTree(((WildcardTree) varType).getBound());
+			break;
+		case ARRAY_TYPE:
+			// type[]
+			handleTypeTree(((ArrayTypeTree) varType).getType());
 		case PRIMITIVE_TYPE:
+		case UNBOUNDED_WILDCARD:
 			// Ignore
 			break;
 		default:
@@ -160,12 +193,16 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Attempts to resolve an unqualified class name in a package
-	 * @param packageName the package in which to look for classes
-	 * @param className the class name to match
-	 * @return the fully-qualified name of the class, or null if it could not be resolved in this package
+	 * 
+	 * @param packageName
+	 *            the package in which to look for classes
+	 * @param className
+	 *            the class name to match
+	 * @return the fully-qualified name of the class, or null if it could not be
+	 *         resolved in this package
 	 */
 	private String resolveClassInPackage(String packageName, String className) {
 		final PackageElement packageElement = mEnv.getElementUtils().getPackageElement(packageName);

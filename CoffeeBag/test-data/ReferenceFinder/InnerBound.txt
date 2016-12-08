@@ -4,3 +4,6 @@ javax.swing.text.ZoneView
 java.util.zip.ZipOutputStream
 javax.swing.UIManager
 javax.swing.text.html.parser.TagElement
+javax.security.auth.login.AccountExpiredException
+javax.security.auth.login.AccountLockedException
+java.util.List
