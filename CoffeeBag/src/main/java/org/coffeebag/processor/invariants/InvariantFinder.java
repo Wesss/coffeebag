@@ -1,17 +1,24 @@
 package org.coffeebag.processor.invariants;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.coffeebag.annotations.Visibility;
+import org.coffeebag.domain.VisibilityInvariantFactory;
+import org.coffeebag.domain.VisibilityInvariant;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
-
-import org.coffeebag.domain.VisibilityInvariant;
+import javax.lang.model.element.TypeElement;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class InvariantFinder {
+
 	private static final String TAG = InvariantFinder.class.getSimpleName();
 
-	public InvariantFinder(ProcessingEnvironment env, Element elementRoot) {
+	private HashMap<TypeElement, VisibilityInvariant> invariants;
+
+	public InvariantFinder() {
+		invariants = new HashMap<>();
 	}
 
 	/**
@@ -19,7 +26,14 @@ public class InvariantFinder {
 	 * @return a map such that map.keyset() is the set of all anotated elements and map.get(element)
 	 *      gives the information on where specified element can be used.
 	 */
-	public Map<Element, VisibilityInvariant> getVisibilityInvariants() {
-		return new HashMap<>();// TODO
+	public Map<Element, VisibilityInvariant> getVisibilityInvariants(ProcessingEnvironment env, Element elementRoot) {
+		InvariantScanner elementWalker = new InvariantScanner(this);
+		elementWalker.scan(elementRoot);
+
+		return Collections.unmodifiableMap(invariants);
+	}
+
+	protected void storeInvariant(TypeElement element, Visibility visibility) {
+		invariants.put(element, VisibilityInvariantFactory.getPublicInvariant());
 	}
 }
