@@ -1,13 +1,10 @@
 package org.coffeebag.domain;
 
-import com.sun.source.tree.AnnotationTree;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.util.TreePath;
+import javax.lang.model.element.Name;
+
 import org.coffeebag.annotations.Visibility;
 
-import javax.lang.model.element.Name;
+import com.sun.source.util.TreePath;
 
 /**
  * Represents an invariant notated by a coffeebag annotation

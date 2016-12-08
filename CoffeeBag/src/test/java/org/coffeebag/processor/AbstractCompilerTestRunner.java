@@ -1,17 +1,16 @@
 package org.coffeebag.processor;
 
-import org.coffeebag.log.Log;
-import org.coffeebag.processor.CheckVisibility.Config;
-import org.junit.runner.Description;
-import org.junit.runner.Runner;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.coffeebag.processor.CheckVisibility.Config;
+import org.junit.runner.Description;
+import org.junit.runner.Runner;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 
 /**
  * TODO support for compiling multiple files in a package structure

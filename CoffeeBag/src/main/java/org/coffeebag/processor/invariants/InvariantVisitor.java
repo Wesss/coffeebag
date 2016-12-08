@@ -1,19 +1,15 @@
 package org.coffeebag.processor.invariants;
 
-import com.sun.source.tree.AnnotationTree;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.util.TreePathScanner;
-import com.sun.source.util.TreeScanner;
-import com.sun.source.util.Trees;
 import org.coffeebag.annotations.Visibility;
-import org.coffeebag.domain.VisibilityInvariant;
 import org.coffeebag.domain.VisibilityInvariantFactory;
 import org.coffeebag.domain.VisibilityInvariants;
 import org.coffeebag.log.Log;
 
-import javax.lang.model.util.Types;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.util.TreePathScanner;
+import com.sun.source.util.Trees;
 
 public class InvariantVisitor extends TreePathScanner<Void, Void> {
 	private static final String TAG = InvariantVisitor.class.getSimpleName();

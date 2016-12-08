@@ -1,11 +1,11 @@
 package org.coffeebag.processor.invariants;
 
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.util.Trees;
-import org.coffeebag.domain.VisibilityInvariants;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+
+import org.coffeebag.domain.VisibilityInvariants;
+
+import com.sun.source.util.Trees;
 
 public class InvariantFinder {
 	private static final String TAG = InvariantVisitor.class.getSimpleName();
