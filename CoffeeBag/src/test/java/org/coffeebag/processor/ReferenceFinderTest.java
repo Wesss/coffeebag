@@ -51,7 +51,7 @@ public class ReferenceFinderTest extends AbstractCompilerTest {
 		}
 
 		// Check
-		assertEquals("Incorrect references found in test " + this.getDescription(),
+		assertEquals("Incorrect references found",
 				this.referencedTypes, actualReferences);
 	}
 }

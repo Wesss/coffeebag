@@ -79,18 +79,14 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 	 */
 	@Override
 	public void run(RunNotifier notifier) {
-		final List<Failure> failures = new ArrayList<>();
 		for (AbstractCompilerTest test : tests) {
 			notifier.fireTestStarted(test.getDescription());
 			try {
 				test.run(CheckVisibility.testMode());
 			} catch (Throwable e) {
-				failures.add(new Failure(test.getDescription(), e));
+				notifier.fireTestFailure(new Failure(test.getDescription(), e));
 			}
 			notifier.fireTestFinished(test.getDescription());
-		}
-		for (Failure failure : failures) {
-			notifier.fireTestFailure(failure);
 		}
 	}
 }

@@ -2,3 +2,5 @@ javax.sound.sampled.AudioFormat
 javax.naming.AuthenticationException
 javax.swing.text.ZoneVIew
 java.util.zip.ZipOutputStream
+javax.swing.UIManager
+javax.swing.text.html.parser.TagElement

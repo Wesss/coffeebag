@@ -1,7 +1,8 @@
 
 import javax.sound.sampled.AudioFormat;
 import javax.naming.*;
-import java.util.zip.ZipOutputStream;
+import javax.swing.UIManager;
+import javax.swing.text.html.parser.*;
 
 /**
  * Creates named and anonymous inner classes that refer to types in various ways
@@ -27,9 +28,20 @@ class InnerBound {
 			}
 		}
 		
-		// java.util.zip.ZipOutputStream
-		ZipOutputStream anonymousExtendsFullyQualified = new java.util.zip.ZipOutputStream(null) {
+		// javax.swing.UIManager
+		UIManager anonymousExtendsImport = new UIManager() {
 			
 		};
+		
+		// javax.swing.text.html.parser.TagElement
+		TagElement anonymousExtendsGlob = new TagElement(null) {
+			
+		};
+		
+		// java.util.zip.ZipOutputStream
+		java.util.zip.ZipOutputStream anonymousExtendsFullyQualified = new java.util.zip.ZipOutputStream(null) {
+			
+		};
+		
 	}
 }
