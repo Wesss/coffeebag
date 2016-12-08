@@ -1,35 +1,27 @@
 package org.coffeebag.domain;
 
-import javax.lang.model.element.Name;
-
-import org.coffeebag.annotations.Visibility;
-
-import com.sun.source.util.TreePath;
-
 /**
- * Represents an invariant notated by a coffeebag annotation
+ * Represents the packages/classes a member is allowed to be accessed from
  */
 public class VisibilityInvariant {
 
-	TreePath path;
-	Name simpleClassName;
-	Visibility visibility;
+	public VisibilityInvariant() {
 
-	public VisibilityInvariant(TreePath path, Name simpleClassName, Visibility visibility) {
-		this.path = path;
-		this.simpleClassName = simpleClassName;
-		this.visibility = visibility;
 	}
 
-	public TreePath getPath() {
-		return path;
+	/**
+	 * @param fullPackageName a fully qualified package name (ex. "org.coffeebag.processor")
+	 * @return true iff usage is permitted in the given package
+	 */
+	public boolean isAllowedInPackage(String fullPackageName) {
+		return true; //TODO
 	}
 
-	public Name getSimpleClassName() {
-		return simpleClassName;
-	}
-
-	public Visibility getVisibility() {
-		return visibility;
+	/**
+	 * @param fullClassName a fully qualified package name (ex. "org.coffeebag.processor.CheckVisibility")
+	 * @return true iff usage is permitted in the given package
+	 */
+	public boolean isAllowedInClass(String fullClassName) {
+		return true; //TODO
 	}
 }

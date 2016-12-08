@@ -1,1 +1,5 @@
-SingleClassInvariant PUBLIC
+SingleClassInvariant //PUBLIC
+    class SingleClassInvariant PASS
+    class org.some.fictional.MyClass PASS
+    package "" PASS
+    package org.some.fictional.dependant PASS

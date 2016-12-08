@@ -1,11 +1,6 @@
 package org.coffeebag.processor.domain;
 
-import com.sun.source.tree.AnnotationTree;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.util.TreePath;
 import org.coffeebag.annotations.Visibility;
-import org.coffeebag.domain.VisibilityInvariants;
 
 /**
  * Represents an invariant expected by a test
