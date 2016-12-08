@@ -13,6 +13,7 @@ import javax.lang.model.util.Types;
 import org.coffeebag.domain.Import;
 import org.coffeebag.log.Log;
 
+import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
@@ -72,6 +73,21 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		return super.visitVariable(tree, arg1);
 	}
 	
+	
+	
+	@Override
+	public Void visitClass(ClassTree ct, Void arg1) {
+		// Check superclass and interfaces
+		final Tree extendsClause = ct.getExtendsClause();
+		if (extendsClause != null) {
+			handleTypeTree(extendsClause);
+		}
+		for (Tree superinterface : ct.getImplementsClause()) {
+			handleTypeTree(superinterface);
+		}
+		return super.visitClass(ct, arg1);
+	}
+
 	/**
 	 * Interprets a tree that represents the type of a variable
 	 * @param varType the type of a variable
@@ -183,6 +199,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 						final Types types = mEnv.getTypeUtils();
 						return types.erasure(inner.asType()).toString();
 					}
+					break;
 				default:
 					break;
 				}

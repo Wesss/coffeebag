@@ -120,7 +120,10 @@ public class ReferenceFinder {
 	}
 	
 	/**
-	 * Returns an immutable set containing the types that the provided code refers to
+	 * Returns an immutable set containing the canonical names of all types that the provided code refers to.
+	 * 
+	 * The returned set will not contain primitive types or types in the java.lang package.
+	 * 
 	 * @return the referenced types
 	 */
 	public Set<String> getTypesUsed() {
