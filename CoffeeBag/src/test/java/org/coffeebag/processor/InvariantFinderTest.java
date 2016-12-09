@@ -88,6 +88,10 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 			default: fail("test line syntax: neither class nor package as first token");
 		}
 		qualifiedName = testActionTokenizer.next();
+		if (qualifiedName.equals("\"\"")) {
+			qualifiedName = "";
+		}
+
 		switch (testActionTokenizer.next()) {
 			case "PASS":
 			case "pass":

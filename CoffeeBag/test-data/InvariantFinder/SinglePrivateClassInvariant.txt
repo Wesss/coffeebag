@@ -1,0 +1,5 @@
+SinglePrivateClassInvariant //PUBLIC
+    class SinglePrivateClassInvariant PASS
+    class SinglePublicClassInvariant FAIL
+    package "" PASS
+    package org.some.other.package FAIL

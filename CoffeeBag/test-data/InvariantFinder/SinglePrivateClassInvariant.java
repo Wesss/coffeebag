@@ -4,7 +4,7 @@ import org.coffeebag.annotations.Visibility;
 /**
  * A public class
  */
-@Access(level = Visibility.PUBLIC)
-public class SingleClassInvariant {
+@Access(level = Visibility.PRIVATE)
+public class SinglePrivateClassInvariant {
 
 }
