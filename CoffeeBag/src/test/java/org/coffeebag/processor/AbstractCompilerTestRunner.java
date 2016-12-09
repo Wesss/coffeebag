@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.coffeebag.processor.CheckVisibility.Config;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
@@ -83,7 +82,7 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 		for (AbstractCompilerTest test : tests) {
 			notifier.fireTestStarted(test.getDescription());
 			try {
-				final CheckVisibility processor = new CheckVisibility(new Config(false, true));
+				final CheckVisibility processor = new CheckVisibility(true);
 				test.run(processor);
 			} catch (Throwable e) {
 				notifier.fireTestFailure(new Failure(test.getDescription(), e));

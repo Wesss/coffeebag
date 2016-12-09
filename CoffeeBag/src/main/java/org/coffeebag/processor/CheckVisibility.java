@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -13,6 +14,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import javax.tools.Diagnostic.Kind;
 
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
@@ -25,39 +27,7 @@ public class CheckVisibility extends AbstractProcessor {
 	private static final String TAG = CheckVisibility.class.getSimpleName();
 
 	/**
-	 * Preprocessor configuration
-	 */
-	public static class Config {
-		public final boolean log;
-		public final boolean recordTestData;
-
-		/**
-		 * Creates a new configuration
-		 *
-		 * @param log            if the processor should output log information
-		 * @param recordTestData if the processor should record information that is useful for testing
-		 */
-		public Config(boolean log, boolean recordTestData) {
-			this.log = log;
-			this.recordTestData = recordTestData;
-		}
-
-		private static final Config TEST_INSTANCE = new Config(true, true);
-
-		/**
-		 * Returns a configuration that enables logging and test data recording
-		 *
-		 * @return a test configuration
-		 */
-		public static Config test() {
-			return TEST_INSTANCE;
-		}
-	}
-
-	/**
-	 * Maps from a class name to a set of canonical class/interface/enum names that it references
-	 * <p>
-	 * This is normally null. It is used in test mode to store results.
+	 * Maps from a canonical class name to a set of canonical class/interface/enum names that it references
 	 */
 	private Map<String, Set<String>> typeReferences;
 
@@ -68,27 +38,21 @@ public class CheckVisibility extends AbstractProcessor {
 	private Map<String, VisibilityInvariant> annotatedMemberToInvariant;
 
 	/**
-	 * Creates a new processor that does not log or record test data
+	 * Creates a new processor that does not log
 	 */
 	public CheckVisibility() {
-		this(null);
+		this(false);
 	}
 
 	/**
 	 * Creates a new processor
 	 *
-	 * @param config a configuration, or null to use the default configuration. The default configuration is no logging
-	 *               and no test data recording.
+	 * @param log if the processor should output log information
 	 */
-	public CheckVisibility(Config config) {
+	public CheckVisibility(boolean log) {
 		typeReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
-
-		if (config != null && config.log) {
-			Log.getInstance().setEnabled(true);
-		} else {
-			Log.getInstance().setEnabled(false);
-		}
+		Log.getInstance().setEnabled(log);
 	}
 
 	@Override
@@ -118,14 +82,30 @@ public class CheckVisibility extends AbstractProcessor {
 			InvariantFinder finder = new InvariantFinder();
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
 		} else {
+			Log.d(TAG, "-------- Starting final processing --------");
 			// compare visibility invariants and their usages
 			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
-				for (String classUsage : typeReference.getValue()) {
-					if (annotatedMemberToInvariant.containsKey(classUsage)) {
-						TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(classUsage);
-						if (annotatedMemberToInvariant.get(classUsage).isUsageAllowedIn(typeElement)) {
-							processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error msg", typeElement);
+				// The class being checked
+				final String className = typeReference.getKey();
+				final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
+				if (usingClass == null) {
+					throw new IllegalStateException("Type element not found for canonical name " + className);
+				}
+				// The types that the class being checked refers to
+				final Set<String> referencedTypes = typeReference.getValue();
+				
+				// Check each referenced type in this context
+				for (String referencedType : referencedTypes) {
+					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
+					if (invariant != null) {
+						if (invariant.isUsageAllowedIn(usingClass)) {
+							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
+						} else {
+							final Messager messager = processingEnv.getMessager();
+							messager.printMessage(Kind.ERROR, "Type " + referencedType + " is not visible to " + className, usingClass);
 						}
+					} else {
+						Log.v(TAG, "No visibility invariant for referenced class " + referencedType);
 					}
 				}
 			}
