@@ -4,6 +4,8 @@ import com.google.testing.compile.JavaFileObjects;
 import com.google.testing.compile.JavaSourceSubjectFactory;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -16,6 +18,7 @@ import java.util.Set;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.*;
 import static org.truth0.Truth.ASSERT;
 
 /**
@@ -42,10 +45,9 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 		Map<String, VisibilityInvariant> invariants = processor.getInvariants();
 		Set<String> testedElements = new HashSet<>();
 
-		String line = "";
+		String line = testReader.readLine();
 		while (line != null) {
-			line = testReader.readLine();
-			if (line == null || line.equals("")) {
+			if (line.equals("")) {
 				continue;
 			}
 
@@ -59,6 +61,7 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 				testElementAllowedUsages(invariants.get(expectedClassName), line, expectedClassName);
 				line = testReader.readLine();
 			}
+			line = testReader.readLine();
 		}
 
 		assertThat("Unexpected Annotated Elements found",
@@ -68,27 +71,16 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 
 	private void testElementAllowedUsages(VisibilityInvariant invariant,
 	                                      String line,
-	                                      String expectedClassName) {
+	                                      String testedClassName) {
 		Scanner testActionTokenizer = new Scanner(line);
-		String qualifiedName;
-		boolean isTestingClass = false, isPassExpected = false;
+		String packageName, simpleClassName;
+		boolean isPassExpected = false;
 
-		switch (testActionTokenizer.next()) {
-			case "CLASS":
-			case "class":
-				isTestingClass = true;
-				break;
-			case "PACKAGE":
-			case "package":
-				isTestingClass = false;
-				break;
-			default: fail("test line syntax: neither class nor package as first token");
+		packageName = testActionTokenizer.next();
+		if (packageName.equals("\"\"")) {
+			packageName = "";
 		}
-
-		qualifiedName = testActionTokenizer.next();
-		if (qualifiedName.equals("\"\"")) {
-			qualifiedName = "";
-		}
+		simpleClassName = testActionTokenizer.next();
 
 		switch (testActionTokenizer.next()) {
 			case "PASS":
@@ -102,34 +94,45 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 			default: fail("test line syntax: neither PASS nor FAIL as 3rd token");
 		}
 
-		String errorMsg = getErrorMsg(expectedClassName, qualifiedName, isTestingClass, isPassExpected);
-		if (isTestingClass) {
-			assertThat(errorMsg, invariant.isAllowedInClass(qualifiedName),
-					is(isPassExpected));
-		} else {
-			assertThat(errorMsg, invariant.isAllowedInPackage(qualifiedName),
-					is(isPassExpected));
-		}
+		TypeElement mockElement = getMockElement(packageName, simpleClassName);
+		String errorMsg = getErrorMsg(testedClassName, packageName, simpleClassName, isPassExpected);
+
+		assertThat(errorMsg, invariant.isUsageAllowedIn(mockElement),
+				is(isPassExpected));
 	}
 
-	private String getErrorMsg(String expectedClassName,
-	                                  String qualifiedName,
-	                                  boolean isTestingClass,
-	                                  boolean isPassExpected) {
+	private TypeElement getMockElement(String packageName, String simpleClassName) {
+		TypeElement mockElement = mock(TypeElement.class);
+		Name mockName = mock(Name.class);
+		when(mockName.toString()).thenReturn(getQualifiedName(packageName, simpleClassName));
+		when(mockElement.getQualifiedName()).thenReturn(mockName);
+
+		return mockElement;
+	}
+
+	private String getErrorMsg(String testedClassName,
+	                           String usingPackageName,
+	                           String usingClassName,
+	                           boolean isPassExpected) {
 		StringBuilder errorMsg = new StringBuilder();
 		errorMsg.append("Expected to be ");
 		if (!isPassExpected) {
 			errorMsg.append("un");
 		}
 		errorMsg.append("able to use ")
-				.append(expectedClassName)
-				.append(" in ");
-		if (isTestingClass) {
-			errorMsg.append("class ");
-		} else {
-			errorMsg.append("package ");
-		}
-		errorMsg.append(qualifiedName);
+				.append(testedClassName)
+				.append(" from within ")
+				.append(getQualifiedName(usingPackageName, usingClassName));
 		return errorMsg.toString();
+	}
+
+	private String getQualifiedName(String packageName, String simpleClassName) {
+		String mockStringName;
+		if (packageName.equals("")) {
+			mockStringName = simpleClassName;
+		} else {
+			mockStringName = packageName + "." + simpleClassName;
+		}
+		return mockStringName;
 	}
 }

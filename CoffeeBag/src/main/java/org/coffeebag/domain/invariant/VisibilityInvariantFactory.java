@@ -1,14 +1,27 @@
 package org.coffeebag.domain.invariant;
 
+import org.coffeebag.annotations.Access;
+import org.coffeebag.log.Log;
+
+import javax.lang.model.element.TypeElement;
+
 public class VisibilityInvariantFactory {
 
-	public static VisibilityInvariant getPublicInvariant() {
-		//TODO
-		return new PublicVisibilityInvariant();
-	}
+	private static String TAG = VisibilityInvariantFactory.class.getSimpleName();
 
-	public static VisibilityInvariant getPrivateInvariant(String fullPackageName, String qualifiedClassName) {
-		//TODO
-		return new PrivateVisibilityInvariant(fullPackageName, qualifiedClassName);
+	/**
+	 * @requires element has an Access annotation
+	 */
+	public static VisibilityInvariant getInvariant(TypeElement element) {
+		Access annotation = element.getAnnotation(Access.class);
+		switch (annotation.level()) {
+			case PUBLIC:
+				return new PublicVisibilityInvariant();
+			case PRIVATE:
+				return new PrivateVisibilityInvariant(element.getQualifiedName().toString());
+			default:
+				Log.d(TAG, "Unsupported visibility " + annotation.level());
+				return null;
+		}
 	}
 }

@@ -1,6 +1,6 @@
 package org.coffeebag.domain.invariant;
 
-import org.coffeebag.annotations.Visibility;
+import javax.lang.model.element.TypeElement;
 
 /**
  * Represents the packages/classes a member is allowed to be accessed from
@@ -8,22 +8,11 @@ import org.coffeebag.annotations.Visibility;
 public class PublicVisibilityInvariant implements VisibilityInvariant {
 
 	/**
-	 * all packages allowed
-	 *
-	 * @inheritDoc
+	 * Allow everything
+	 * @inheritdoc
 	 */
 	@Override
-	public boolean isAllowedInPackage(String fullPackageName) {
-		return true;
-	}
-
-	/**
-	 * all classes allowed
-	 *
-	 * @inheritDoc
-	 */
-	@Override
-	public boolean isAllowedInClass(String qualifiedClassName) {
+	public boolean isUsageAllowedIn(TypeElement element) {
 		return true;
 	}
 }

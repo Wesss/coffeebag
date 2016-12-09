@@ -1,19 +1,17 @@
 package org.coffeebag.domain.invariant;
 
+import javax.lang.model.element.TypeElement;
+
 /**
  * Represents the packages/classes a member is allowed to be accessed from
  */
 public interface VisibilityInvariant {
 
 	/**
-	 * @param fullPackageName a full package name (ex. "org.coffeebag.processor")
-	 * @return true iff usage is permitted in the given package
+	 * @param element the TypeElement representing the class that is using
+	 *                the member with this invariant
+	 * @return true iff the given class is allowed usage of the member associated
+	 * with this invariant
 	 */
-	boolean isAllowedInPackage(String fullPackageName);
-
-	/**
-	 * @param qualifiedClassName a fully qualified class name (ex. "org.coffeebag.processor.CheckVisibility")
-	 * @return true iff usage is permitted in the given package
-	 */
-	boolean isAllowedInClass(String qualifiedClassName);
+	boolean isUsageAllowedIn(TypeElement element);
 }

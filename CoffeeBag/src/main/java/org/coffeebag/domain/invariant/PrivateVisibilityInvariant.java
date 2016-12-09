@@ -1,34 +1,24 @@
 package org.coffeebag.domain.invariant;
 
+import javax.lang.model.element.TypeElement;
+
 /**
  * Represents the packages/classes a member is allowed to be accessed from
  */
 public class PrivateVisibilityInvariant implements VisibilityInvariant {
 
-	private CharSequence fullPackageName, qualifiedClassName;
+	private String qualifiedClassName;
 
-	public PrivateVisibilityInvariant(String fullPackageName, String qualifiedClassName) {
-		this.fullPackageName = fullPackageName;
+	public PrivateVisibilityInvariant(String qualifiedClassName) {
 		this.qualifiedClassName = qualifiedClassName;
 	}
 
 	/**
-	 * only the package declared in allowed
-	 *
-	 * @inheritDoc
+	 * Allow only usage if member is using itself
+	 * @inheritdoc
 	 */
 	@Override
-	public boolean isAllowedInPackage(String fullPackageName) {
-		return this.fullPackageName.equals(fullPackageName);
-	}
-
-	/**
-	 * only the class declared in allowed
-	 *
-	 * @inheritDoc
-	 */
-	@Override
-	public boolean isAllowedInClass(String qualifiedClassName) {
-		return this.qualifiedClassName.equals(qualifiedClassName);
+	public boolean isUsageAllowedIn(TypeElement element) {
+		return element.getQualifiedName().toString().equals(qualifiedClassName);
 	}
 }

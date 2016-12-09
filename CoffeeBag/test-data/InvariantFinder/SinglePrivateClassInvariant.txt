@@ -1,5 +1,5 @@
-SinglePrivateClassInvariant //PUBLIC
-    class SinglePrivateClassInvariant PASS
-    class AnotherClass FAIL
-    package "" PASS
-    package org.some.other.package FAIL
+SinglePrivateClassInvariant //PRIVATE
+    "" SinglePrivateClassInvariant PASS
+    "" AnotherClass FAIL
+    org SinglePrivateClassInvariant FAIL
+    org AnotherClass FAIL
