@@ -2,6 +2,9 @@ package org.coffeebag.TestUser;
 
 import java.util.Collections;
 import java.util.List;
+
+import org.coffeebag.TestUser.p2.Collision;
+
 import static org.coffeebag.TestUser.p2.Collision.name;
 
 public class Thing2 {
@@ -10,6 +13,9 @@ public class Thing2 {
 		// Both the field and the method are imported
 		name = 3;
 		name();
+		
+		// Use Collision, which is private
+		new Collision();
 	}
 	
 	private void reticulate() {
