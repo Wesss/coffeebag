@@ -13,6 +13,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
+import org.coffeebag.annotations.Access;
 import org.coffeebag.domain.VisibilityInvariant;
 import org.coffeebag.log.Log;
 import org.coffeebag.processor.invariants.InvariantFinder;
@@ -111,12 +112,10 @@ public class CheckVisibility extends AbstractProcessor {
 			}
 
 			// build visibility invariant structure
-			for (Element element : roundEnv.getRootElements()) {
-				InvariantFinder finder = new InvariantFinder();
-				annotatedMemberToInvariant.putAll(
-						finder.getVisibilityInvariants(processingEnv, element)
-				);
-			}
+			InvariantFinder finder = new InvariantFinder();
+			annotatedMemberToInvariant.putAll(
+					finder.getVisibilityInvariants(processingEnv, roundEnv)
+			);
 		} else {
 			// compare visibility invariants and their usages
 			// processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error msg", element);
