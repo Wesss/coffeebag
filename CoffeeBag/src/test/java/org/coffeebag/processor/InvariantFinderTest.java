@@ -43,8 +43,8 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 				.compilesWithoutError();
 
 		Elements elementUtils = processor.getElementUtils();
-		Map<Element, VisibilityInvariant> invariants = processor.getInvariants();
-		Set<Element> testedElements = new HashSet<>();
+		Map<String, VisibilityInvariant> invariants = processor.getInvariants();
+		Set<String> testedElements = new HashSet<>();
 
 		String line = "";
 		while (line != null) {
@@ -54,14 +54,13 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 			}
 
 			Scanner memberTokenizer = new Scanner(line);
-			String className = memberTokenizer.next();
-			TypeElement element = elementUtils.getTypeElement(className);
-			assertThat(invariants.keySet(), contains(element));
-			testedElements.add(element);
+			String expectedClassName = memberTokenizer.next();
+			assertThat("expected element was not detected", invariants.keySet(), hasItem(expectedClassName));
+			testedElements.add(expectedClassName);
 
 			line = testReader.readLine();
 			while (!(line == null || line.equals(""))) {
-				testElementAllowedUsages(invariants, line, element);
+				testElementAllowedUsages(invariants.get(expectedClassName), line);
 				line = testReader.readLine();
 			}
 		}
@@ -71,7 +70,8 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 				is(testedElements));
 	}
 
-	private void testElementAllowedUsages(Map<Element, VisibilityInvariant> invariants, String line, TypeElement element) {
+	private void testElementAllowedUsages(VisibilityInvariant invariant,
+	                                      String line) {
 		Scanner testActionTokenizer = new Scanner(line);
 		String qualifiedName;
 		boolean isTestingClass = false, isPassExpected = false;
@@ -101,10 +101,10 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 		}
 
 		if (isTestingClass) {
-			assertThat(invariants.get(element).isAllowedInClass(qualifiedName),
+			assertThat(invariant.isAllowedInClass(qualifiedName),
 					is(isPassExpected));
 		} else {
-			assertThat(invariants.get(element).isAllowedInPackage(qualifiedName),
+			assertThat(invariant.isAllowedInPackage(qualifiedName),
 					is(isPassExpected));
 		}
 	}
