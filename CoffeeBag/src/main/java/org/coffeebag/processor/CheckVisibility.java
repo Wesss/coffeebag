@@ -2,6 +2,7 @@ package org.coffeebag.processor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -11,6 +12,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
@@ -79,16 +81,13 @@ public class CheckVisibility extends AbstractProcessor {
 	 *               and no test data recording.
 	 */
 	public CheckVisibility(Config config) {
-		typeReferences = null;
+		typeReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 
 		if (config != null && config.log) {
 			Log.getInstance().setEnabled(true);
 		} else {
 			Log.getInstance().setEnabled(false);
-		}
-		if (config != null && config.recordTestData) {
-			typeReferences = new HashMap<>();
 		}
 	}
 
@@ -120,7 +119,16 @@ public class CheckVisibility extends AbstractProcessor {
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
 		} else {
 			// compare visibility invariants and their usages
-			// processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error msg", element);
+			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
+				for (String classUsage : typeReference.getValue()) {
+					if (annotatedMemberToInvariant.containsKey(classUsage)) {
+						TypeElement typeElement = processingEnv.getElementUtils().getTypeElement(classUsage);
+						if (annotatedMemberToInvariant.get(classUsage).isUsageAllowedIn(typeElement)) {
+							processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error msg", typeElement);
+						}
+					}
+				}
+			}
 		}
 		// Allow other annotations to be processed
 		return false;
