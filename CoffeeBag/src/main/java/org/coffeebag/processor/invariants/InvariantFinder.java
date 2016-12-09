@@ -1,13 +1,14 @@
 package org.coffeebag.processor.invariants;
 
 import org.coffeebag.annotations.Access;
-import org.coffeebag.domain.VisibilityInvariant;
-import org.coffeebag.domain.VisibilityInvariantFactory;
+import org.coffeebag.domain.invariant.VisibilityInvariant;
+import org.coffeebag.domain.invariant.VisibilityInvariantFactory;
 import org.coffeebag.log.Log;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,24 +30,33 @@ public class InvariantFinder {
 		for (Element element : roundEnv.getElementsAnnotatedWith(Access.class)) {
 			if (element instanceof TypeElement) {
 				TypeElement typeElement = ((TypeElement) element);
-				Access annotation = element.getAnnotation(Access.class);
-				if (annotation != null) {
-					String qualifiedName = typeElement.getQualifiedName().toString();
-					switch (annotation.level()) {
-						case PUBLIC:
-							invariants.put(qualifiedName,
-									VisibilityInvariantFactory.getPublicInvariant());
-							break;
-						case PRIVATE:
-							invariants.put(qualifiedName,
-									VisibilityInvariantFactory.getPrivateInvariant());
-						default:
-							Log.d(TAG, "Unsupported visibility " + annotation.level());
-					}
-				}
+				processTypeElement(invariants, typeElement);
 			}
 		}
 
 		return Collections.unmodifiableMap(invariants);
+	}
+
+	private void processTypeElement(HashMap<String, VisibilityInvariant> invariants, TypeElement typeElement) {
+		Access annotation = typeElement.getAnnotation(Access.class);
+		String qualifiedName = typeElement.getSimpleName().toString();
+		switch (annotation.level()) {
+			case PUBLIC:
+				invariants.put(
+						qualifiedName,
+						VisibilityInvariantFactory.getPublicInvariant());
+				break;
+			case PRIVATE:
+				//TODO allow nested classes? this assumes next element up is package element
+				String packageName =
+						((PackageElement)typeElement.getEnclosingElement()).getQualifiedName().toString();
+				VisibilityInvariant invariant = VisibilityInvariantFactory.getPrivateInvariant(
+						packageName,
+						qualifiedName);
+				invariants.put(qualifiedName, invariant);
+			default:
+				Log.d(TAG, "Unsupported visibility " + annotation.level());
+
+		}
 	}
 }

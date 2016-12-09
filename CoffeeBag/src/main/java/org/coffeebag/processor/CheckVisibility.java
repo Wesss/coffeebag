@@ -11,10 +11,8 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 
-import org.coffeebag.annotations.Access;
-import org.coffeebag.domain.VisibilityInvariant;
+import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
 import org.coffeebag.processor.invariants.InvariantFinder;
 import org.coffeebag.processor.references.ReferenceFinder;

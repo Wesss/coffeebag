@@ -2,11 +2,8 @@ package org.coffeebag.processor;
 
 import com.google.testing.compile.JavaFileObjects;
 import com.google.testing.compile.JavaSourceSubjectFactory;
-import org.coffeebag.domain.VisibilityInvariant;
+import org.coffeebag.domain.invariant.VisibilityInvariant;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
