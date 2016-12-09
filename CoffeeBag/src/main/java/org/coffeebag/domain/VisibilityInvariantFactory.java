@@ -6,4 +6,9 @@ public class VisibilityInvariantFactory {
 		//TODO
 		return new VisibilityInvariant();
 	}
+
+	public static VisibilityInvariant getPrivateInvariant() {
+		//TODO
+		return new VisibilityInvariant();
+	}
 }

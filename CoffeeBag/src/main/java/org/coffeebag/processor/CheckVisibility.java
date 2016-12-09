@@ -139,12 +139,4 @@ public class CheckVisibility extends AbstractProcessor {
 	Map<String, VisibilityInvariant> getInvariants() {
 		return annotatedMemberToInvariant;
 	}
-
-	/**
-	 * For testing
-	 * @return the element utils associated with the processing environment
-	 */
-	Elements getElementUtils() {
-		return processingEnv.getElementUtils();
-	}
 }

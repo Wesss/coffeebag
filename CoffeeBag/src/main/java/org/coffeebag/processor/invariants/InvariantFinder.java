@@ -31,11 +31,15 @@ public class InvariantFinder {
 				TypeElement typeElement = ((TypeElement) element);
 				Access annotation = element.getAnnotation(Access.class);
 				if (annotation != null) {
+					String qualifiedName = typeElement.getQualifiedName().toString();
 					switch (annotation.level()) {
 						case PUBLIC:
-							invariants.put(typeElement.getQualifiedName().toString(),
+							invariants.put(qualifiedName,
 									VisibilityInvariantFactory.getPublicInvariant());
 							break;
+						case PRIVATE:
+							invariants.put(qualifiedName,
+									VisibilityInvariantFactory.getPrivateInvariant());
 						default:
 							Log.d(TAG, "Unsupported visibility " + annotation.level());
 					}
