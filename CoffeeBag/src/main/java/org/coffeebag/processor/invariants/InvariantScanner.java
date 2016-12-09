@@ -11,18 +11,18 @@ import javax.lang.model.util.ElementScanner8;
  */
 public class InvariantScanner extends ElementScanner8<Void, Void> {
 
-    private static String TAG = InvariantScanner.class.getSimpleName();
+	private static String TAG = InvariantScanner.class.getSimpleName();
 
-    private InvariantFinder invariantFinder;
+	private InvariantFinder invariantFinder;
 
-    public InvariantScanner(InvariantFinder invariantFinder) {
-        this.invariantFinder = invariantFinder;
-    }
+	public InvariantScanner(InvariantFinder invariantFinder) {
+		this.invariantFinder = invariantFinder;
+	}
 
-    @Override
-    public Void visitType(TypeElement e, Void p) {
-        Log.d(TAG, "Visiting type " + e);
-        invariantFinder.storeInvariant(e, Visibility.PUBLIC); //TODO
-        return super.visitType(e, p);
-    }
+	@Override
+	public Void visitType(TypeElement e, Void p) {
+		Log.d(TAG, "Visiting type " + e);
+		invariantFinder.storeInvariant(e, Visibility.PUBLIC); //TODO
+		return super.visitType(e, p);
+	}
 }
