@@ -13,6 +13,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 
@@ -60,13 +61,13 @@ public class CheckVisibility extends AbstractProcessor {
 		if (!roundEnv.processingOver()) {
 			// build member usage structure
 			for (Element element : roundEnv.getRootElements()) {
+				// Get erased type name
+				final TypeMirror erasure = processingEnv.getTypeUtils().erasure(element.asType());
+				
 				final ReferenceFinder finder = new ReferenceFinder(processingEnv, element);
 				final Set<String> usedTypes = finder.getTypesUsed();
-
-				// Record if in test mode
-				if (typeReferences != null) {
-					typeReferences.put(element.asType().toString(), usedTypes);
-				}
+				// Record usages
+				typeReferences.put(erasure.toString(), usedTypes);
 
 				StringBuilder message = new StringBuilder()
 						.append("Element ")
