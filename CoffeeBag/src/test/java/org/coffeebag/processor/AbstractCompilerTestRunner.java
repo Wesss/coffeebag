@@ -37,14 +37,18 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 	 * @throws IOException if a file could not be read
 	 */
 	public AbstractCompilerTestRunner(Class<?> testClass) throws IOException {
-		// Find test files
+		// Find test files (as represented by .txt files)
 		tests = new ArrayList<>();
 		final File dataDir = new File(getTestPath());
-		final FileFilter javaFilter = pathname -> pathname.getName().endsWith(".java");
-		for (File sourceFile : dataDir.listFiles(javaFilter)) {
-			// Find the corresponding text file
-			final File textFile = new File(sourceFile.getAbsolutePath().replaceFirst("\\.java$", ".txt"));
-			if (textFile.exists()) {
+		final FileFilter txtFilter = pathname -> pathname.getName().endsWith(".txt");
+		for (File textFile : dataDir.listFiles(txtFilter)) {
+			// Find the corresponding file(s) to compile
+			File sourceFile = new File(textFile.getAbsolutePath().replaceFirst("\\.txt$", ".java"));
+			if (!sourceFile.exists()) {
+				// if .java file does not exists, pass in source directory with same name
+				sourceFile = new File(textFile.getAbsolutePath().replaceFirst("\\.txt$", ""));
+			}
+			if (sourceFile.exists()) {
 				tests.add(createTest(sourceFile, textFile, testClass));
 			}
 		}
