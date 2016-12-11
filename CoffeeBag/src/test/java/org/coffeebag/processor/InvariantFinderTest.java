@@ -28,8 +28,7 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 
 	private BufferedReader testReader;
 
-	public InvariantFinderTest(File sourceFile, File referenceFile, Class<?> testClass)
-			throws IOException {
+	public InvariantFinderTest(File sourceFile, File referenceFile, Class<?> testClass) throws IOException {
 		super(sourceFile, referenceFile, testClass);
 
 		this.testReader = new BufferedReader(new FileReader(referenceFile));
@@ -38,8 +37,7 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 	@Override
 	public void run(CheckVisibility processor) throws Exception {
 		ASSERT.about(JavaSourceSubjectFactory.javaSource())
-				.that(JavaFileObjects.forResource(getSource().toURI().toURL()))
-				.processedWith(processor)
+				.that(JavaFileObjects.forResource(getSource().toURI().toURL())).processedWith(processor)
 				.compilesWithoutError();
 
 		Map<String, VisibilityInvariant> invariants = processor.getInvariants();
@@ -51,38 +49,35 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 				continue;
 			}
 
-			Scanner memberTokenizer = new Scanner(line);
-			String expectedClassName = memberTokenizer.next();
-			assertThat("expected element was not detected", invariants.keySet(), hasItem(expectedClassName));
-			testedElements.add(expectedClassName);
+			try (Scanner memberTokenizer = new Scanner(line)) {
+				String expectedClassName = memberTokenizer.next();
+				assertThat("expected element was not detected", invariants.keySet(), hasItem(expectedClassName));
+				testedElements.add(expectedClassName);
 
-			line = testReader.readLine();
-			while (!(line == null || line.equals(""))) {
-				testElementAllowedUsages(invariants.get(expectedClassName), line, expectedClassName);
+				line = testReader.readLine();
+				while (!(line == null || line.equals(""))) {
+					testElementAllowedUsages(invariants.get(expectedClassName), line, expectedClassName);
+					line = testReader.readLine();
+				}
 				line = testReader.readLine();
 			}
-			line = testReader.readLine();
 		}
 
-		assertThat("Unexpected Annotated Elements found",
-				invariants.keySet(),
-				is(testedElements));
+		assertThat("Unexpected Annotated Elements found", invariants.keySet(), is(testedElements));
 	}
 
-	private void testElementAllowedUsages(VisibilityInvariant invariant,
-	                                      String line,
-	                                      String testedClassName) {
-		Scanner testActionTokenizer = new Scanner(line);
-		String packageName, simpleClassName;
-		boolean isPassExpected = false;
+	private void testElementAllowedUsages(VisibilityInvariant invariant, String line, String testedClassName) {
+		try (Scanner testActionTokenizer = new Scanner(line)) {
+			String packageName, simpleClassName;
+			boolean isPassExpected = false;
 
-		packageName = testActionTokenizer.next();
-		if (packageName.equals("\"\"")) {
-			packageName = "";
-		}
-		simpleClassName = testActionTokenizer.next();
+			packageName = testActionTokenizer.next();
+			if (packageName.equals("\"\"")) {
+				packageName = "";
+			}
+			simpleClassName = testActionTokenizer.next();
 
-		switch (testActionTokenizer.next()) {
+			switch (testActionTokenizer.next()) {
 			case "PASS":
 			case "pass":
 				isPassExpected = true;
@@ -91,14 +86,15 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 			case "fail":
 				isPassExpected = false;
 				break;
-			default: fail("test line syntax: neither PASS nor FAIL as 3rd token");
+			default:
+				fail("test line syntax: neither PASS nor FAIL as 3rd token");
+			}
+
+			TypeElement mockElement = getMockElement(packageName, simpleClassName);
+			String errorMsg = getErrorMsg(testedClassName, packageName, simpleClassName, isPassExpected);
+
+			assertThat(errorMsg, invariant.isUsageAllowedIn(mockElement), is(isPassExpected));
 		}
-
-		TypeElement mockElement = getMockElement(packageName, simpleClassName);
-		String errorMsg = getErrorMsg(testedClassName, packageName, simpleClassName, isPassExpected);
-
-		assertThat(errorMsg, invariant.isUsageAllowedIn(mockElement),
-				is(isPassExpected));
 	}
 
 	private TypeElement getMockElement(String packageName, String simpleClassName) {
@@ -110,18 +106,14 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 		return mockElement;
 	}
 
-	private String getErrorMsg(String testedClassName,
-	                           String usingPackageName,
-	                           String usingClassName,
-	                           boolean isPassExpected) {
+	private String getErrorMsg(String testedClassName, String usingPackageName, String usingClassName,
+			boolean isPassExpected) {
 		StringBuilder errorMsg = new StringBuilder();
 		errorMsg.append("Expected to be ");
 		if (!isPassExpected) {
 			errorMsg.append("un");
 		}
-		errorMsg.append("able to use ")
-				.append(testedClassName)
-				.append(" from within ")
+		errorMsg.append("able to use ").append(testedClassName).append(" from within ")
 				.append(getQualifiedName(usingPackageName, usingClassName));
 		return errorMsg.toString();
 	}
