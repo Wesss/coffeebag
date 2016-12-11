@@ -79,7 +79,7 @@ public class CheckVisibility extends AbstractProcessor {
 			}
 
 			// build visibility invariant structure
-			InvariantFinder finder = new InvariantFinder();
+			InvariantFinder finder = new InvariantFinder(processingEnv);
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
 		} else {
 			Log.d(TAG, "-------- Starting final processing --------");
