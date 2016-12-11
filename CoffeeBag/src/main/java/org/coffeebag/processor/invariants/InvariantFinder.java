@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 import org.coffeebag.annotations.Access;
@@ -26,7 +27,15 @@ public class InvariantFinder {
 		HashMap<String, VisibilityInvariant> invariants = new HashMap<>();
 
 		for (Element element : roundEnv.getElementsAnnotatedWith(Access.class)) {
-			if (element instanceof TypeElement) {
+			/*
+			 * From the Element documentation: Using {@code
+			 * instanceof} is <em>not</em> necessarily a reliable idiom for
+			 * determining the effective class of an object in this modeling
+			 * hierarchy since an implementation may choose to have a single object
+			 * implement multiple {@code Element} subinterfaces.
+			 */
+			final ElementKind kind = element.getKind();
+			if (kind ==  ElementKind.CLASS || kind == ElementKind.INTERFACE || kind == ElementKind.ENUM) {
 				TypeElement typeElement = ((TypeElement) element);
 				invariants.put(
 						typeElement.getQualifiedName().toString(),
