@@ -11,7 +11,8 @@ Subsequent lines: [package] [className] [expectedResult] where
     [package] is the full package name
                     "" is interpreted as the empty package
     [className] is the simple class name of a class hypothetically using the class declared above
-
+                    when <subclass> preceedes it, it is interpreted as a subclass of the class
+                    being tested
     [expectedResult] is either "PASS" or "FAIL", representing whether the
                     class in the given package should be allowed usage
 

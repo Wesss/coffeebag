@@ -9,6 +9,8 @@ public class VisibilityInvariantFactory {
 
 	private static String TAG = VisibilityInvariantFactory.class.getSimpleName();
 
+	// TODO add testmode to this class to enable generating mock subclasses?
+
 	/**
 	 * @requires element has an Access annotation
 	 */

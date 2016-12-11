@@ -74,6 +74,7 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 	                                      String testedClassName) {
 		Scanner testActionTokenizer = new Scanner(line);
 		String packageName, simpleClassName;
+		boolean isSubclass = false;
 		boolean isPassExpected = false;
 
 		packageName = testActionTokenizer.next();
@@ -81,6 +82,10 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 			packageName = "";
 		}
 		simpleClassName = testActionTokenizer.next();
+		if (simpleClassName.contains("<subclass>")) {
+			isSubclass = true;
+			simpleClassName = simpleClassName.replace("<subclass>", "");
+		}
 
 		switch (testActionTokenizer.next()) {
 			case "PASS":
@@ -94,18 +99,21 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 			default: fail("test line syntax: neither PASS nor FAIL as 3rd token");
 		}
 
-		TypeElement mockElement = getMockElement(packageName, simpleClassName);
-		String errorMsg = getErrorMsg(testedClassName, packageName, simpleClassName, isPassExpected);
+		TypeElement mockElement = getMockElement(packageName, simpleClassName, isSubclass);
+		String errorMsg = getErrorMsg(testedClassName, packageName, simpleClassName, isSubclass, isPassExpected);
 
 		assertThat(errorMsg, invariant.isUsageAllowedIn(mockElement),
 				is(isPassExpected));
 	}
 
-	private TypeElement getMockElement(String packageName, String simpleClassName) {
+	private TypeElement getMockElement(String packageName,
+	                                   String simpleClassName,
+	                                   boolean isSubclass) {
 		TypeElement mockElement = mock(TypeElement.class);
 		Name mockName = mock(Name.class);
 		when(mockName.toString()).thenReturn(getQualifiedName(packageName, simpleClassName));
 		when(mockElement.getQualifiedName()).thenReturn(mockName);
+		// TODO isSubclassSupport
 
 		return mockElement;
 	}
@@ -113,7 +121,8 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 	private String getErrorMsg(String testedClassName,
 	                           String usingPackageName,
 	                           String usingClassName,
-	                           boolean isPassExpected) {
+	                           boolean isPassExpected,
+	                           boolean isSubclass) {
 		StringBuilder errorMsg = new StringBuilder();
 		errorMsg.append("Expected to be ");
 		if (!isPassExpected) {
@@ -123,6 +132,10 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 				.append(testedClassName)
 				.append(" from within ")
 				.append(getQualifiedName(usingPackageName, usingClassName));
+		if (isSubclass) {
+			errorMsg.append(" extends ")
+					.append(testedClassName);
+		}
 		return errorMsg.toString();
 	}
 

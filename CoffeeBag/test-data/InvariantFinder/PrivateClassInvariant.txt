@@ -1,0 +1,6 @@
+example.PrivateClassInvariant //PRIVATE
+    example PrivateClassInvariant PASS
+    example AnotherClass FAIL
+    org PrivateClassInvariant FAIL
+    org AnotherClass FAIL
+    "" PrivateClassInvariant FAIL
