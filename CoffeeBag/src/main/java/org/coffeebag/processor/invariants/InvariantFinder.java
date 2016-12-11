@@ -1,18 +1,20 @@
 package org.coffeebag.processor.invariants;
 
-import org.coffeebag.annotations.Access;
-import org.coffeebag.domain.invariant.VisibilityInvariant;
-import org.coffeebag.domain.invariant.VisibilityInvariantFactory;
-
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+
+import org.coffeebag.annotations.Access;
+import org.coffeebag.domain.invariant.VisibilityInvariant;
+import org.coffeebag.domain.invariant.VisibilityInvariantFactory;
+
 public class InvariantFinder {
 
+	@SuppressWarnings("unused")
 	private static final String TAG = InvariantFinder.class.getSimpleName();
 
 	/**
