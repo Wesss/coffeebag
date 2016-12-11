@@ -3,9 +3,9 @@ package org.coffeebag.domain.invariant;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Represents the packages/classes a member is allowed to be accessed from
+ * Allows an element to be accessed from everywhere
  */
-public class PublicVisibilityInvariant implements VisibilityInvariant {
+class PublicVisibilityInvariant implements VisibilityInvariant {
 
 	/**
 	 * Allow everything

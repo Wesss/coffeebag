@@ -9,7 +9,7 @@ import javax.lang.model.util.Elements;
 /**
  * A visibility invariant that allows access from one package (not including its subpackages)
  */
-public class PackageVisibilityInvariant implements VisibilityInvariant {
+class PackageVisibilityInvariant implements VisibilityInvariant {
 	
 	/**
 	 * The name of the package from which elements can be accessed

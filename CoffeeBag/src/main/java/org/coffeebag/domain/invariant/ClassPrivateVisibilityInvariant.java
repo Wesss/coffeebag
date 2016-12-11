@@ -5,7 +5,7 @@ import javax.lang.model.element.TypeElement;
 /**
  * Restricts an element to use in one class
  */
-public class ClassPrivateVisibilityInvariant implements VisibilityInvariant {
+class ClassPrivateVisibilityInvariant implements VisibilityInvariant {
 
 	/**
 	 * The canonical name where this element may be used
