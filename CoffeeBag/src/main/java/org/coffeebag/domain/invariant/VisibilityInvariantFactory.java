@@ -18,8 +18,6 @@ public class VisibilityInvariantFactory {
 
 	/**
 	 * Creates a visibility invariant for an annotated type, executable, or field
-	 * @requires element has an Access annotation, and element.getKind() is ElementKind.CLASS, ElementKind.ENUM,
-	 * 		ElementKind.INTERFACE, ElementKind.CONSTRUCTOR, ElementKind.METHOD, or ElementKind.FIELD
 	 */
 	public static VisibilityInvariant getInvariant(AccessElement element, ProcessingEnvironment env) {
 		
@@ -32,18 +30,13 @@ public class VisibilityInvariantFactory {
 			case PUBLIC:
 				return new PublicVisibilityInvariant();
 			case PRIVATE:
-				if (kind == AccessElement.Kind.TYPE) {
-					// Private classes are accessible from their package only
-					final PackageElement elementPackage = env.getElementUtils().getPackageOf(element.getElement());
-					return new PackageVisibilityInvariant(elementPackage.getQualifiedName().toString(), env.getElementUtils());
-				} else {
-					// Other elements are only accessible from the class in which they are declared
-					final TypeElement enclosing = element.getEnclosingType();
-					if (enclosing == null) {
-						throw new IllegalStateException("Failed to find an enclosing type for " + element.getElement().getSimpleName());
-					}
-					return new ClassPrivateVisibilityInvariant(enclosing.getQualifiedName().toString());
+				// Private classes can only be used by themselves
+				// Not very useful, but consistent
+				final TypeElement typeOrEnclosing = element.asTypeElement();
+				if (typeOrEnclosing == null) {
+					throw new IllegalStateException("Failed to find an enclosing type or type for " + element.getElement().getSimpleName());
 				}
+				return new ClassPrivateVisibilityInvariant(typeOrEnclosing.getQualifiedName().toString());
 			case SCOPED:
 				final String scope = annotation.scope();
 				final Messager messager = env.getMessager();
@@ -60,6 +53,12 @@ public class VisibilityInvariantFactory {
 				}
 				
 				return new SubpackageVisibilityInvariant(scopePackage.getQualifiedName().toString(), env.getElementUtils());
+			case SUBCLASS:
+				final TypeElement enclosing = element.asTypeElement();
+				if (enclosing == null) {
+					throw new IllegalStateException("Failed to find an enclosing type or type for " + element.getElement().getSimpleName());
+				}
+				return new SubclassVisibilityInvariant(env.getTypeUtils(), enclosing);
 			default:
 				Log.d(TAG, "Unsupported visibility " + annotation.level());
 				return null;

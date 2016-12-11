@@ -16,6 +16,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic.Kind;
 
+import org.coffeebag.annotations.Access;
 import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
@@ -81,6 +82,12 @@ public class CheckVisibility extends AbstractProcessor {
 			
 		} else {
 			Log.d(TAG, "-------- Starting final processing --------");
+			
+			Log.d(TAG, "All invariants:");
+			for (Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) { 
+				Log.d(TAG, entry.getKey() + " => " + entry.getValue());
+			}
+			
 			// compare visibility invariants and their usages
 			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
 				// The class being checked
@@ -94,22 +101,48 @@ public class CheckVisibility extends AbstractProcessor {
 				
 				// Check each referenced type in this context
 				for (String referencedType : referencedTypes) {
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
-					if (invariant != null) {
-						if (invariant.isUsageAllowedIn(usingClass)) {
-							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
+					final TypeElement referencedTypeElement = getTypeElement(referencedType, roundEnv);
+					if (referencedTypeElement == null) {
+						throw new NullPointerException("Null type element for " + referencedType);
+					}
+					if (referencedTypeElement.getAnnotation(Access.class) != null) {
+						final VisibilityInvariant invariant = annotatedMemberToInvariant.get(new AccessElement(referencedTypeElement));
+						if (invariant != null) {
+							if (invariant.isUsageAllowedIn(usingClass)) {
+								Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
+							} else {
+								final Messager messager = processingEnv.getMessager();
+								messager.printMessage(Kind.ERROR, "Type " + referencedType + " is not visible to " + className, usingClass);
+							}
 						} else {
-							final Messager messager = processingEnv.getMessager();
-							messager.printMessage(Kind.ERROR, "Type " + referencedType + " is not visible to " + className, usingClass);
+							Log.v(TAG, "No visibility invariant for referenced class " + referencedType);
 						}
 					} else {
-						Log.v(TAG, "No visibility invariant for referenced class " + referencedType);
+						Log.v(TAG, "Referenced element " + referencedTypeElement + " is not annotated");
 					}
 				}
 			}
 		}
 		// Allow other annotations to be processed
 		return false;
+	}
+	
+	private TypeElement getTypeElement(String canonicalName, RoundEnvironment roundEnv) {
+		TypeElement element = processingEnv.getElementUtils().getTypeElement(canonicalName);
+		if (element != null) {
+			return element;
+		} else {
+			// Look for the element in the top-level elements
+			for (Element rootElement : roundEnv.getRootElements()) {
+				if (rootElement.getKind().isClass() || rootElement.getKind().isInterface()) {
+					final TypeElement rootTypeElement = (TypeElement) rootElement;
+					if (rootTypeElement.getQualifiedName().equals(canonicalName)) {
+						return rootTypeElement;
+					}
+				}
+			}
+			return null;
+		}
 	}
 
 	/**
