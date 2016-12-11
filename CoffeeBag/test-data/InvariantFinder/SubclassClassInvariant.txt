@@ -1,0 +1,8 @@
+example.SubclassClassInvariant //PUBLIC
+    example SubclassClassInvariant PASS
+    example MyClass FAIL
+    example <subclass>MySubclass FAIL
+    org.some.package SubclassClassInvariant FAIL
+    org.some.package <subclass>MySubclass PASS
+    "" SubclassClassInvariant FAIL
+    "" <subclass>MySubclass PASS

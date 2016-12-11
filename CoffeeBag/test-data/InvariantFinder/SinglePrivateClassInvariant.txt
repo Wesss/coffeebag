@@ -1,5 +1,0 @@
-SinglePrivateClassInvariant //PRIVATE
-    "" SinglePrivateClassInvariant PASS
-    "" AnotherClass FAIL
-    org SinglePrivateClassInvariant FAIL
-    org AnotherClass FAIL
