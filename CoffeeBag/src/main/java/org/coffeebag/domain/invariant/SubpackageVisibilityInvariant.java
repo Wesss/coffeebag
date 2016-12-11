@@ -18,5 +18,10 @@ class SubpackageVisibilityInvariant extends PackageVisibilityInvariant {
 		final PackageElement elementPackage = elements.getPackageOf(element);
 		return elementPackage.getQualifiedName().toString().startsWith(packageName);
 	}
+	
+	@Override
+	public String toString() {
+		return "Allowed in package " + packageName + " and subpackages";
+	}
 
 }

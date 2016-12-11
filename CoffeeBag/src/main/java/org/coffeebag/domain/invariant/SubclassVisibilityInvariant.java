@@ -22,6 +22,12 @@ public class SubclassVisibilityInvariant implements VisibilityInvariant {
 	 */
 	@Override
 	public boolean isUsageAllowedIn(TypeElement element) {
-		return typeUtils.isSubtype(element.asType(), classElement.asType());
+		return typeUtils.isSubtype(element.asType(), classElement.asType())
+				|| typeUtils.isSameType(element.asType(), classElement.asType());
+	}
+	
+	@Override
+	public String toString() {
+		return "Allowed in class " + classElement + " and subclasses";
 	}
 }

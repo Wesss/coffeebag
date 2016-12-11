@@ -15,4 +15,9 @@ class PublicVisibilityInvariant implements VisibilityInvariant {
 	public boolean isUsageAllowedIn(TypeElement element) {
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return "Allowed everywhere";
+	}
 }

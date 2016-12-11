@@ -41,5 +41,8 @@ class PackageVisibilityInvariant implements VisibilityInvariant {
 		return packageName.equals(elementPackage.getQualifiedName().toString());
 	}
 	
-
+	@Override
+	public String toString() {
+		return "Allowed in package " + packageName + " (not subpackages)";
+	}
 }

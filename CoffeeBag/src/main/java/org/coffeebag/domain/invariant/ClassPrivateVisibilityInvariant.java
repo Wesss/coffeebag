@@ -24,4 +24,9 @@ class ClassPrivateVisibilityInvariant implements VisibilityInvariant {
 	public boolean isUsageAllowedIn(TypeElement element) {
 		return element.getQualifiedName().toString().equals(qualifiedClassName);
 	}
+
+	@Override
+	public String toString() {
+		return "Allowed in class " + qualifiedClassName;
+	}
 }
