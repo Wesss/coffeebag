@@ -4,18 +4,18 @@ import org.coffeebag.annotations.Visibility;
 /**
  * A class that annotates public members but doesn't reuse members
  */
-@Access(level = Visibility.PUBLIC)
-public class AnnotationDeclarations {
+@Access(level = Visibility.PRIVATE)
+public class PrivateAnnotationDeclarations {
 
-	@Access(level = Visibility.PUBLIC)
+	@Access(level = Visibility.PRIVATE)
 	public int magicNumber;
 
-	@Access(level = Visibility.PUBLIC)
-	public AnnotationDeclarations() {
+	@Access(level = Visibility.PRIVATE)
+	public PrivateAnnotationDeclarations() {
 		magicNumber = 32;
 	}
 
-	@Access(level = Visibility.PUBLIC)
+	@Access(level = Visibility.PRIVATE)
 	public int getMagicNumber() {
 		return magicNumber;
 	}
