@@ -1,4 +1,4 @@
-package org.example;
+package org.other;
 
 import org.coffeebag.annotations.Access;
 import org.coffeebag.annotations.Visibility;
