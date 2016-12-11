@@ -12,7 +12,7 @@ public class Thing2 {
 		// Modify Collision.name
 		// Both the field and the method are imported
 		name = 3;
-		name();
+		name();	
 		
 		// Use Collision, which is private
 		new Collision();
