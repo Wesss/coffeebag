@@ -55,9 +55,10 @@ public class InvariantFinder {
 			final ElementKind kind = element.getKind();
 			if (kind ==  ElementKind.CLASS || kind == ElementKind.INTERFACE || kind == ElementKind.ENUM) {
 				TypeElement typeElement = ((TypeElement) element);
-				invariants.put(
-						typeElement.getQualifiedName().toString(),
-						VisibilityInvariantFactory.getInvariant(typeElement, env));
+				final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(typeElement, env);
+				if (invariant != null) {
+					invariants.put(typeElement.getQualifiedName().toString(), invariant);
+				}
 			}
 		}
 
