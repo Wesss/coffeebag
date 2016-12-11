@@ -30,6 +30,11 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 	 * The tests to run
 	 */
 	private final List<AbstractCompilerTest> tests;
+	/**
+	 * Tests with missing source files
+	 */
+	private final List<File> incompleteTests;
+	private final Class<?> testClass;
 
 	/**
 	 * Creates a test runner
@@ -39,6 +44,9 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 	public AbstractCompilerTestRunner(Class<?> testClass) throws IOException {
 		// Find test files (as represented by .txt files)
 		tests = new ArrayList<>();
+		incompleteTests = new ArrayList<>();
+		this.testClass = testClass;
+
 		final File dataDir = new File(getTestPath());
 		final FileFilter txtFilter = pathname -> pathname.getName().endsWith(".txt");
 		for (File textFile : dataDir.listFiles(txtFilter)) {
@@ -50,6 +58,8 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 			}
 			if (sourceFile.exists()) {
 				tests.add(createTest(sourceFile, textFile, testClass));
+			} else {
+				incompleteTests.add(textFile);
 			}
 		}
 
@@ -83,6 +93,11 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 	 */
 	@Override
 	public void run(RunNotifier notifier) {
+		for (File incompleteTest : incompleteTests) {
+			String testName = incompleteTest.getName().replaceFirst("\\.txt$", "");
+			Description description = Description.createTestDescription(testClass, testName);
+			notifier.fireTestFailure(new Failure(description, new AssertionError("Source file missing")));
+		}
 		for (AbstractCompilerTest test : tests) {
 			notifier.fireTestStarted(test.getDescription());
 			try {
