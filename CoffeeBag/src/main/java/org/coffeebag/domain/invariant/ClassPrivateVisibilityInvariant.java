@@ -3,13 +3,16 @@ package org.coffeebag.domain.invariant;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Represents the packages/classes a member is allowed to be accessed from
+ * Restricts an element to use in one class
  */
-public class PrivateVisibilityInvariant implements VisibilityInvariant {
+class ClassPrivateVisibilityInvariant implements VisibilityInvariant {
 
+	/**
+	 * The canonical name where this element may be used
+	 */
 	private String qualifiedClassName;
 
-	public PrivateVisibilityInvariant(String qualifiedClassName) {
+	public ClassPrivateVisibilityInvariant(String qualifiedClassName) {
 		this.qualifiedClassName = qualifiedClassName;
 	}
 

@@ -3,7 +3,9 @@ package org.coffeebag.processor.invariants;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -17,6 +19,22 @@ public class InvariantFinder {
 
 	@SuppressWarnings("unused")
 	private static final String TAG = InvariantFinder.class.getSimpleName();
+	
+	/**
+	 * The processing environment
+	 */
+	private final ProcessingEnvironment env;
+
+	/**
+	 * Creates a new invariant finder
+	 * @param env the processing environment
+	 */
+	public InvariantFinder(ProcessingEnvironment env) {
+		Objects.requireNonNull(env);
+		this.env = env;
+	}
+
+
 
 	/**
 	 * returns the elements annotated with @Access and their corresponding visibility invariants
@@ -37,9 +55,10 @@ public class InvariantFinder {
 			final ElementKind kind = element.getKind();
 			if (kind ==  ElementKind.CLASS || kind == ElementKind.INTERFACE || kind == ElementKind.ENUM) {
 				TypeElement typeElement = ((TypeElement) element);
-				invariants.put(
-						typeElement.getQualifiedName().toString(),
-						VisibilityInvariantFactory.getInvariant(typeElement));
+				final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(typeElement, env);
+				if (invariant != null) {
+					invariants.put(typeElement.getQualifiedName().toString(), invariant);
+				}
 			}
 		}
 
