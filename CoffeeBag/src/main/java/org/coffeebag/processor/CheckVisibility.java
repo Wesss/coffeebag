@@ -20,7 +20,9 @@ import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
 import org.coffeebag.processor.invariants.InvariantFinder;
+import org.coffeebag.processor.references.FieldReferenceFinder;
 import org.coffeebag.processor.references.ReferenceFinder;
+import org.coffeebag.processor.references.TypeResolver;
 
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -54,6 +56,7 @@ public class CheckVisibility extends AbstractProcessor {
 		typeReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 		Log.getInstance().setEnabled(log);
+		Log.getInstance().setTagFilter((tag) -> tag.startsWith("FieldReference"));
 	}
 
 	@Override
@@ -64,27 +67,44 @@ public class CheckVisibility extends AbstractProcessor {
 				// Get erased type name
 				final TypeMirror erasure = processingEnv.getTypeUtils().erasure(element.asType());
 				
-				final ReferenceFinder finder = new ReferenceFinder(processingEnv, element);
+				final TypeResolver resolver = new TypeResolver(processingEnv, element);
+				
+				final ReferenceFinder finder = new ReferenceFinder(processingEnv, resolver, element);
 				final Set<String> usedTypes = finder.getTypesUsed();
 				// Record usages
 				typeReferences.put(erasure.toString(), usedTypes);
+
+				StringBuilder message = new StringBuilder()
+						.append("Element ")
+						.append(element)
+						.append(" used these types:");
+				for (String used : usedTypes) {
+					message.append("\n\t").append(used);
+				}
+				Log.d(TAG, message.toString());
+				
+				// Find usages of fields
+				final FieldReferenceFinder fieldReferenceFinder = new FieldReferenceFinder(processingEnv, resolver, element);
+				for (AccessElement referencedField : fieldReferenceFinder.getReferencedFields()) {
+					Log.d(TAG, "Element " + element + " used field " + referencedField);
+				}
 			}
 
 			// build visibility invariant structure
 			InvariantFinder finder = new InvariantFinder(processingEnv);
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
-			
-			// Output invariants
-			for (Map.Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
-				System.out.println("[Invariant] " + entry.getKey() + ": " + entry.getValue());
-			}
-			
 		} else {
 			Log.d(TAG, "-------- Starting final processing --------");
+			
+			for (Map.Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
+				Log.d(TAG, "Invariant: " + entry.getKey() + " => " + entry.getValue());
+			}
+			
 			// compare visibility invariants and their usages
 			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
 				// The class being checked
 				final String className = typeReference.getKey();
+				Log.d(TAG, "Checking types referenced by " + className);
 				final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
 				if (usingClass == null) {
 					throw new IllegalStateException("Type element not found for canonical name " + className);
@@ -94,7 +114,9 @@ public class CheckVisibility extends AbstractProcessor {
 				
 				// Check each referenced type in this context
 				for (String referencedType : referencedTypes) {
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
+					Log.d(TAG, "Checking use of type " + referencedType);
+					final AccessElement accessElement = AccessElement.type(referencedType);
+					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(accessElement);
 					if (invariant != null) {
 						if (invariant.isUsageAllowedIn(usingClass)) {
 							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);

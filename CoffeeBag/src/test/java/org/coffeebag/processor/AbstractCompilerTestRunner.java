@@ -99,6 +99,7 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 			notifier.fireTestFailure(new Failure(description, new AssertionError("Source file missing")));
 		}
 		for (AbstractCompilerTest test : tests) {
+			System.out.println("[CompilerTestRunner] ---- Starting test " + test.getDescription().getDisplayName() + " ----");
 			notifier.fireTestStarted(test.getDescription());
 			try {
 				final CheckVisibility processor = new CheckVisibility(true);
@@ -107,6 +108,7 @@ public abstract class AbstractCompilerTestRunner extends Runner {
 				notifier.fireTestFailure(new Failure(test.getDescription(), e));
 			}
 			notifier.fireTestFinished(test.getDescription());
+			System.out.println("[CompilerTestRunner] ---- Finished test " + test.getDescription().getDisplayName() + " ----");
 		}
 	}
 }

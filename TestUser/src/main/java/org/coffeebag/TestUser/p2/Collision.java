@@ -11,10 +11,8 @@ import org.coffeebag.annotations.Visibility;
 @Access(level = Visibility.PRIVATE)
 public class Collision {
 
-	@Access(level = Visibility.PRIVATE)
 	public static int name;
-
-	@Access(level = Visibility.PRIVATE)
+	
 	public static void name() {
 		
 	}

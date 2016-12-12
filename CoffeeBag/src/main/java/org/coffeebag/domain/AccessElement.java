@@ -1,162 +1,138 @@
 package org.coffeebag.domain;
 
-import java.util.Objects;
-
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 import org.coffeebag.annotations.Access;
-import org.coffeebag.log.Log;
 
 /**
- * An element that has an {@link Access} annotation
- * <p/>
- * Three types of elements can have access annotations:
- * <ul>
- * <li>Types, with element kind {@link ElementKind#CLASS}, {@link ElementKind#INTERFACE}, or {@link ElementKind#ENUM}</li>
- * <li>Executable elements (including methods, class initializer blocks, and static initializer blocks) with element
- * kind {@link ElementKind#METHOD}, {@link ElementKind#CONSTRUCTOR}, {@link ElementKind#INSTANCE_INIT}, or {@link ElementKind#STATIC_INIT}</li>
- * <li>Fields, with element kind {@link ElementKind#FIELD}</li>
- * </ul>
+ * An element that has an {@link Access} annotation. This may be a class or a field.
  */
 public class AccessElement {
+	@SuppressWarnings("unused")
 	private static final String TAG = AccessElement.class.getSimpleName();
 	
 	/**
-	 * Simplified element kinds
+	 * The canonical name of the type of this element, or the class that encloses this element if this is a field
 	 */
-	public enum Kind {
-		/**
-		 * A class, interface, or enumeration
-		 */
-		TYPE,
-		/**
-		 * A method, instance initializer, or static initializer
-		 */
-		EXECUTABLE,
-		/**
-		 * A field
-		 */
-		FIELD,
-	}
+	private final String typeName;
 	
 	/**
-	 * The inner element
+	 * The field name if this is a field, or null if this is a type
 	 * 
-	 * Invariant: This is not null
+	 * This is not used in {@link #equals(Object)} and {@link #hashCode()}
 	 */
-	private final Element element;
-
+	private final String fieldName;
 	/**
-	 * Creates a new access element
-	 * @param element the element to wrap
-	 * @throws NullPointerException if element is null
-	 * @throws IllegalArgumentException if element does not have one of the supported kinds or does not have an Access
-	 * annotation
+	 * A TypeElement that represents this element or its enclosing type, or null if none is available
 	 */
-	public AccessElement(Element element) {
-		Objects.requireNonNull(element);
-		// Check kind
-		simplifyKind(element.getKind());
-		if (element.getAnnotation(Access.class) == null) {
-			throw new IllegalArgumentException("Element has no Access annotation");
-		}
-		this.element = element;
+	private final TypeElement typeElement;
+	/**
+	 * A FieldElement that represents this field, or null if none is available or if this is a type
+	 * 
+	 * This is not used in {@link #equals(Object)} and {@link #hashCode()}
+	 */
+	private final VariableElement fieldElement;
+	
+	private AccessElement(String typeName, TypeElement typeElement, String fieldName, VariableElement fieldElement) {
+		this.typeName = typeName;
+		this.fieldName = fieldName;
+		this.typeElement = typeElement;
+		this.fieldElement = fieldElement;
 	}
 
-
 	/**
-	 * Returns the simplified kind of this element
-	 * @return the kind of this element
+	 * Creates an element from a TypeElement
+	 * @param typeElement the type element
+	 * @return an AccessElement representing the provided type
 	 */
-	public Kind getKind() {
-		return simplifyKind(element.getKind());
+	public static AccessElement type(TypeElement typeElement) {
+		return new AccessElement(typeElement.getQualifiedName().toString(), typeElement, null, null);
+	}
+	public static AccessElement type(String canonicalName) {
+		return new AccessElement(canonicalName, null, null, null);
+	}
+	
+	public static AccessElement field(VariableElement field) {
+		if (field.getKind() != ElementKind.FIELD) {
+			throw new IllegalArgumentException("Field VariableElement does not have kind FIELD");
+		}
+		final TypeElement enclosing = (TypeElement) field.getEnclosingElement();
+		return new AccessElement(enclosing.getQualifiedName().toString(), enclosing, field.getSimpleName().toString(), field);
 	}
 	
 	/**
-	 * Returns the wrapped element
-	 * @return the element
+	 * Creates an element from a class name and a field name
+	 * @param enclosingCanonicalName the canonical name of the class that contains this field
+	 * @param fieldName the name of the field
+	 * @return an AccessType
 	 */
-	public Element getElement() {
-		return element;
+	public static AccessElement field(String enclosingCanonicalName, String fieldName) {
+		return new AccessElement(enclosingCanonicalName, null, fieldName, null);
 	}
 
-	/**
-	 * Returns the access annotation of this element
-	 * @return the access annotation
-	 */
-	public Access getAccessAnnotation() {
-		return element.getAnnotation(Access.class);
+	public String getTypeName() {
+		return typeName;
+	}
+
+	public String getFieldName() {
+		return fieldName;
+	}
+
+	public TypeElement getTypeElement() {
+		return typeElement;
+	}
+
+	public VariableElement getFieldElement() {
+		return fieldElement;
 	}
 	
-	/**
-	 * Finds the innermost type that contains this element
-	 * @return the innermost enclosing type, or null if this element has kind {@link Kind#TYPE}
-	 */
-	public TypeElement getEnclosingType() {
-		Log.d(TAG, "Getting enclosing type for " + element);
-		if (getKind() == Kind.TYPE) {
-			return null;
-		}
-		Element enclosing;
-		do {
-			enclosing = element.getEnclosingElement();
-			Log.d(TAG, "One enclosing type: " + enclosing);
-			if (enclosing == null) {
-				// Not found
-				return null;
-			}
-		} while (enclosing.getKind() != ElementKind.CLASS
-				&& enclosing.getKind() != ElementKind.INTERFACE
-				&& enclosing.getKind() != ElementKind.ENUM);
-		Log.d(TAG, "Found enclosing element " + enclosing + " with kind " + enclosing.getKind());
-		final Class<? extends Element> enclosingClass = enclosing.getClass();
-		for (Class<?> implInterface : enclosingClass.getInterfaces()) {
-			Log.d(TAG, "Implements interface " + implInterface.getCanonicalName());
-		}
-		return (TypeElement) enclosing;
-	}
-
+	
 	@Override
 	public String toString() {
-		return element.toString();
+		if (fieldName != null) {
+			return typeName + '.' + fieldName;
+		} else {
+			return typeName;
+		}
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return element.hashCode();
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((fieldName == null) ? 0 : fieldName.hashCode());
+		result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
+		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		AccessElement other = (AccessElement) obj;
-		return element.equals(other.element);
-	}
-	
-	private static Kind simplifyKind(ElementKind kind) {
-		switch (kind) {
-		// Intentional fallthrough
-		case CLASS:
-		case ENUM:
-		case INTERFACE:
-			return Kind.TYPE;
-		case METHOD:
-		case CONSTRUCTOR:
-		case INSTANCE_INIT:
-		case STATIC_INIT:
-			return Kind.EXECUTABLE;
-		case FIELD:
-			return Kind.FIELD;
-		default:
-			throw new IllegalArgumentException("Invalid inner element kind " + kind);
 		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		AccessElement other = (AccessElement) obj;
+		if (fieldName == null) {
+			if (other.fieldName != null) {
+				return false;
+			}
+		} else if (!fieldName.equals(other.fieldName)) {
+			return false;
+		}
+		if (typeName == null) {
+			if (other.typeName != null) {
+				return false;
+			}
+		} else if (!typeName.equals(other.typeName)) {
+			return false;
+		}
+		return true;
 	}
-	
 }
