@@ -47,7 +47,7 @@ public class VisibilityInvariantFactory {
 				
 				return new SubpackageVisibilityInvariant(scopePackage.getQualifiedName().toString(), env.getElementUtils());
 			case SUBCLASS:
-				return new SubclassVisibilityInvariant(env.getTypeUtils(), enclosing);
+				return new SubclassVisibilityInvariant(env, enclosing);
 			default:
 				Log.d(TAG, "Unsupported visibility " + annotation.level());
 				return null;

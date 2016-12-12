@@ -1,5 +1,7 @@
 package org.coffeebag.log;
 
+import java.util.function.Predicate;
+
 /**
  * A simple logging tool with basic configuration support
  */
@@ -26,11 +28,10 @@ public class Log {
 			}
 		}
 	}
-	
 	/**
-	 * If any log messages should be output
+	 * Filters log messages based on their tags
 	 */
-	private boolean enabled;
+	private Predicate<String> tagFilter;
 	
 	/**
 	 * The log instance
@@ -44,13 +45,13 @@ public class Log {
 		if (instance == null) {
 			instance = new Log();
 			// Enable by default
-			instance.enabled = true;
+			instance.tagFilter = (tag) -> true;
 		}
 		return instance;
 	}
 	
 	public void log(Level level, String tag, String message) {
-		if (enabled) {
+		if (tagFilter.test(tag)) {
 			final StringBuilder builder = new StringBuilder();
 			builder.append('[')
 				.append(level.toShortString())
@@ -68,7 +69,15 @@ public class Log {
 	 * @param enabled if the logger should be enabled
 	 */
 	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+		tagFilter = (tag) -> enabled;
+	}
+	
+	/**
+	 * Sets a predicate to use for filtering messages by tag
+	 * @param filter
+	 */
+	public void setTagFilter(Predicate<String> filter) {
+		tagFilter = filter;
 	}
 
 	/**

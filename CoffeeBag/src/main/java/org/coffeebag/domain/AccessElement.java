@@ -92,7 +92,11 @@ public class AccessElement {
 	
 	@Override
 	public String toString() {
-		return typeName + '.' + fieldName;
+		if (fieldName != null) {
+			return typeName + '.' + fieldName;
+		} else {
+			return typeName;
+		}
 	}
 
 	@Override

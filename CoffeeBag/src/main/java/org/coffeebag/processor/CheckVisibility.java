@@ -54,6 +54,7 @@ public class CheckVisibility extends AbstractProcessor {
 		typeReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 		Log.getInstance().setEnabled(log);
+		Log.getInstance().setTagFilter((tag) -> !tag.startsWith("Reference"));
 	}
 
 	@Override
@@ -84,10 +85,16 @@ public class CheckVisibility extends AbstractProcessor {
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
 		} else {
 			Log.d(TAG, "-------- Starting final processing --------");
+			
+			for (Map.Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
+				Log.d(TAG, "Invariant: " + entry.getKey() + " => " + entry.getValue());
+			}
+			
 			// compare visibility invariants and their usages
 			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
 				// The class being checked
 				final String className = typeReference.getKey();
+				Log.d(TAG, "Checking types referenced by " + className);
 				final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
 				if (usingClass == null) {
 					throw new IllegalStateException("Type element not found for canonical name " + className);
@@ -97,6 +104,7 @@ public class CheckVisibility extends AbstractProcessor {
 				
 				// Check each referenced type in this context
 				for (String referencedType : referencedTypes) {
+					Log.d(TAG, "Checking use of type " + referencedType);
 					final AccessElement accessElement = AccessElement.type(referencedType);
 					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(accessElement);
 					if (invariant != null) {
