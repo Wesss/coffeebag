@@ -14,8 +14,6 @@ public class VisibilityInvariantFactory {
 
 	private static String TAG = VisibilityInvariantFactory.class.getSimpleName();
 
-	// TODO add testmode to this class to enable generating mock subclasses?
-
 	/**
 	 * Creates a visibility invariant for an annotated type, executable, or field
 	 * @requires element has an Access annotation, and element.getKind() is ElementKind.CLASS, ElementKind.ENUM,
