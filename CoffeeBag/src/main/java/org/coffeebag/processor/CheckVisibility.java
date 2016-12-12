@@ -1,7 +1,6 @@
 package org.coffeebag.processor;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -17,6 +16,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic.Kind;
 
+import org.coffeebag.annotations.Access;
 import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
@@ -29,13 +29,13 @@ public class CheckVisibility extends AbstractProcessor {
 	private static final String TAG = CheckVisibility.class.getSimpleName();
 
 	/**
-	 * Maps from a canonical class name to a set of elements that it references
+	 * Maps from a canonical class name to a set of canonical class/interface/enum names that it references
 	 */
-	private Map<String, Set<AccessElement>> typeReferences;
+	private Map<String, Set<String>> typeReferences;
 
 	/**
-	 * Maps an annotated element to its visibility invariant. If an item is not
-	 * present in this mapping, it was not annotated
+	 * Maps an annotated element to its visibility invariant.
+	 * If an item is not present in this mapping, it was not annotated
 	 */
 	private Map<AccessElement, VisibilityInvariant> annotatedMemberToInvariant;
 
@@ -49,8 +49,7 @@ public class CheckVisibility extends AbstractProcessor {
 	/**
 	 * Creates a new processor
 	 *
-	 * @param log
-	 *            if the processor should output log information
+	 * @param log if the processor should output log information
 	 */
 	public CheckVisibility(boolean log) {
 		typeReferences = new HashMap<>();
@@ -63,12 +62,11 @@ public class CheckVisibility extends AbstractProcessor {
 		if (!roundEnv.processingOver()) {
 			// build member usage structure
 			for (Element element : roundEnv.getRootElements()) {
-				Log.v(TAG, "Root element " + element.getSimpleName());
 				// Get erased type name
 				final TypeMirror erasure = processingEnv.getTypeUtils().erasure(element.asType());
-
+				
 				final ReferenceFinder finder = new ReferenceFinder(processingEnv, element);
-				final Set<AccessElement> usedTypes = finder.getTypesUsed();
+				final Set<String> usedTypes = finder.getTypesUsed();
 				// Record usages
 				typeReferences.put(erasure.toString(), usedTypes);
 			}
@@ -76,22 +74,22 @@ public class CheckVisibility extends AbstractProcessor {
 			// build visibility invariant structure
 			InvariantFinder finder = new InvariantFinder(processingEnv);
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
-
+			
 			// Output invariants
 			for (Map.Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
 				System.out.println("[Invariant] " + entry.getKey() + ": " + entry.getValue());
 			}
-
+			
 		} else {
 			Log.d(TAG, "-------- Starting final processing --------");
-
+			
 			Log.d(TAG, "All invariants:");
-			for (Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
+			for (Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) { 
 				Log.d(TAG, entry.getKey() + " => " + entry.getValue());
 			}
-
+			
 			// compare visibility invariants and their usages
-			for (Entry<String, Set<AccessElement>> typeReference : typeReferences.entrySet()) {
+			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
 				// The class being checked
 				final String className = typeReference.getKey();
 				final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
@@ -99,27 +97,52 @@ public class CheckVisibility extends AbstractProcessor {
 					throw new IllegalStateException("Type element not found for canonical name " + className);
 				}
 				// The types that the class being checked refers to
-				final Set<AccessElement> referencedTypes = typeReference.getValue();
-
+				final Set<String> referencedTypes = typeReference.getValue();
+				
 				// Check each referenced type in this context
-				for (AccessElement referencedType : referencedTypes) {
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
-					if (invariant != null) {
-						if (invariant.isUsageAllowedIn(usingClass)) {
-							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
+				for (String referencedType : referencedTypes) {
+					final TypeElement referencedTypeElement = getTypeElement(referencedType, roundEnv);
+					if (referencedTypeElement == null) {
+						throw new NullPointerException("Null type element for " + referencedType);
+					}
+					if (referencedTypeElement.getAnnotation(Access.class) != null) {
+						final VisibilityInvariant invariant = annotatedMemberToInvariant.get(new AccessElement(referencedTypeElement));
+						if (invariant != null) {
+							if (invariant.isUsageAllowedIn(usingClass)) {
+								Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
+							} else {
+								final Messager messager = processingEnv.getMessager();
+								messager.printMessage(Kind.ERROR, "Type " + referencedType + " is not visible to " + className, usingClass);
+							}
 						} else {
-							final Messager messager = processingEnv.getMessager();
-							messager.printMessage(Kind.ERROR,
-									"Type " + referencedType + " is not visible to " + className, usingClass);
+							Log.v(TAG, "No visibility invariant for referenced class " + referencedType);
 						}
 					} else {
-						Log.v(TAG, "No visibility invariant for referenced class " + referencedType);
+						Log.v(TAG, "Referenced element " + referencedTypeElement + " is not annotated");
 					}
 				}
 			}
 		}
 		// Allow other annotations to be processed
 		return false;
+	}
+	
+	private TypeElement getTypeElement(String canonicalName, RoundEnvironment roundEnv) {
+		TypeElement element = processingEnv.getElementUtils().getTypeElement(canonicalName);
+		if (element != null) {
+			return element;
+		} else {
+			// Look for the element in the top-level elements
+			for (Element rootElement : roundEnv.getRootElements()) {
+				if (rootElement.getKind().isClass() || rootElement.getKind().isInterface()) {
+					final TypeElement rootTypeElement = (TypeElement) rootElement;
+					if (rootTypeElement.getQualifiedName().equals(canonicalName)) {
+						return rootTypeElement;
+					}
+				}
+			}
+			return null;
+		}
 	}
 
 	/**
@@ -128,15 +151,7 @@ public class CheckVisibility extends AbstractProcessor {
 	 * @return the types analyzed and the types that they refer to
 	 */
 	Map<String, Set<String>> getTypeReferences() {
-		final Map<String, Set<String>> stringified = new HashMap<>(typeReferences.size());
-		for (Map.Entry<String, Set<AccessElement>> entry : typeReferences.entrySet()) {
-			final Set<String> referencedStrings = new HashSet<>(entry.getValue().size());
-			for (AccessElement element : entry.getValue()) {
-				referencedStrings.add(element.toString());
-			}
-			stringified.put(entry.getKey(), referencedStrings);
-		}
-		return stringified;
+		return typeReferences;
 	}
 
 	/**
