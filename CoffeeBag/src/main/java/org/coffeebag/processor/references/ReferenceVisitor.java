@@ -5,12 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Types;
 
-import org.coffeebag.domain.Import;
 import org.coffeebag.log.Log;
 
 import com.sun.source.tree.ArrayTypeTree;
@@ -34,9 +30,10 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	private final ProcessingEnvironment mEnv;
 
 	/**
-	 * The packages that have all their classes imported using glob imports
+	 * The type resolver
 	 */
-	private final Set<Import> mImports;
+	private final TypeResolver typeResolver;
+	
 	/**
 	 * The types referenced in the code
 	 */
@@ -49,9 +46,9 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 *            the packages that have been imported. This set will not be
 	 *            modified
 	 */
-	ReferenceVisitor(ProcessingEnvironment env, Set<Import> imports) {
+	ReferenceVisitor(ProcessingEnvironment env, TypeResolver resolver) {
 		mEnv = env;
-		mImports = imports;
+		this.typeResolver = resolver;
 		mTypes = new HashSet<>();
 	}
 
@@ -127,7 +124,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			break;
 		case IDENTIFIER:
 			// Type name is an unqualified ID
-			final String qualified = resolveUnqualifiedType(varType.toString());
+			final String qualified = typeResolver.resolveUnqualifiedType(varType.toString());
 			Log.d(TAG, "Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
 			if (qualified != null) {
 				mTypes.add(qualified);
@@ -162,86 +159,5 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			Log.d(TAG, "Variable type has unexpected kind " + varType.getKind());
 			break;
 		}
-	}
-
-	/**
-	 * Attempts to resolve an unqualified type name based on the imports in the
-	 * file
-	 * 
-	 * @param unqualifiedName
-	 *            the unqualified name
-	 * @return the fully-qualified name of the type, or null if the name could
-	 *         not be resolved
-	 */
-	private String resolveUnqualifiedType(String unqualifiedName) {
-		Log.v(TAG, "resolveUnqualifiedType(" + unqualifiedName + ")");
-		for (Import anImport : mImports) {
-			Log.d(TAG, String.format("Looking for \"%s\" in import \"%s\"", unqualifiedName, anImport));
-			switch (anImport.getType()) {
-			case TYPE:
-				if (anImport.getScope().endsWith("." + unqualifiedName)) {
-					return anImport.getScope();
-				}
-				break;
-			case GLOB:
-				final String qualified = resolveClassInPackage(anImport.getScope(), unqualifiedName);
-				if (qualified != null) {
-					return qualified;
-				}
-				break;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Attempts to resolve an unqualified class name in a package
-	 * 
-	 * @param packageName
-	 *            the package in which to look for classes
-	 * @param className
-	 *            the class name to match
-	 * @return the fully-qualified name of the class, or null if it could not be
-	 *         resolved in this package
-	 */
-	private String resolveClassInPackage(String packageName, String className) {
-		final PackageElement packageElement = mEnv.getElementUtils().getPackageElement(packageName);
-		if (packageElement != null) {
-			for (Element innerType : packageElement.getEnclosedElements()) {
-				switch (innerType.getKind()) {
-				// Intentional fallthrough
-				case CLASS:
-				case ENUM:
-				case INTERFACE:
-					if (innerType.getSimpleName().contentEquals(className)) {
-						// Found
-						return innerType.asType().toString();
-					}
-				default:
-					break;
-				}
-			}
-		}
-		final TypeElement typeElement = mEnv.getElementUtils().getTypeElement(packageName);
-		if (typeElement != null) {
-			for (Element inner : typeElement.getEnclosedElements()) {
-				switch (inner.getKind()) {
-				// Intentional fallthrough
-				case CLASS:
-				case ENUM:
-				case INTERFACE:
-					if (inner.getSimpleName().contentEquals(className)) {
-						// Found
-						// Erase type to remove template arguments
-						final Types types = mEnv.getTypeUtils();
-						return types.erasure(inner.asType()).toString();
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		return null;
 	}
 }

@@ -3,7 +3,6 @@ package org.coffeebag.processor.references;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -23,20 +22,14 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementScanner8;
 import javax.lang.model.util.Types;
 
-import org.coffeebag.domain.Import;
-import org.coffeebag.domain.Import.ImportType;
 import org.coffeebag.log.Log;
 
 import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ImportTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 
 /**
  * Finds the classes that a language element refers to
- * @author samcrow
  *
  */
 public class ReferenceFinder {
@@ -53,11 +46,6 @@ public class ReferenceFinder {
 	private final Set<String> mTypes;
 	
 	/**
-	 * The imports
-	 */
-	private final Set<Import> mImports;
-	
-	/**
 	 * The trees object associated with the environment
 	 */
 	private final Trees mTrees;
@@ -66,45 +54,22 @@ public class ReferenceFinder {
 	 * Creates a reference finder that will analyze the provided source
 	 * @param source the source to analyze
 	 */
-	public ReferenceFinder(ProcessingEnvironment env, Element source) {
+	public ReferenceFinder(ProcessingEnvironment env, TypeResolver resolver, Element source) {
 		Log.d(TAG, "-------- ReferenceFinder running on " + source.getSimpleName() + " --------");
 		mEnv = env;
 		mTrees = Trees.instance(env);
 		mTypes = new HashSet<>();
-		mImports = new HashSet<>();
 		
 		final TreePath elementPath = mTrees.getPath(source);
 		final CompilationUnitTree compilationUnit = elementPath.getCompilationUnit();
-		
-		// Inspect imports
-		final List<? extends ImportTree> imports = compilationUnit.getImports();
-		
-		for (ImportTree importTree : imports) {
-			final Tree qualifiedId = importTree.getQualifiedIdentifier();
-			Log.d(TAG, "Import tree kind: " + importTree.getKind());
-			Log.d(TAG, "Import tree qualified ID kind: " + qualifiedId.getKind());
-			if (qualifiedId.getKind().equals(Tree.Kind.MEMBER_SELECT)) {
-				final MemberSelectTree idReference = (MemberSelectTree) qualifiedId;
-				if (idReference.getIdentifier().contentEquals("*")) {
-					// Glob import
-					Log.d(TAG, "Glob import of package " + idReference.getExpression());
-					mImports.add(new Import(ImportType.GLOB, idReference.getExpression().toString()));
-				} else {
-					// Single-class import
-					Log.d(TAG, "Single-class import of " + qualifiedId);
-					mImports.add(new Import(ImportType.TYPE, qualifiedId.toString()));
-					mTypes.add(qualifiedId.toString());
-				}
-			}
-		}
-		
+
 		Log.i(TAG, "-------- Starting ReferenceScanner --------");
 		final ReferenceScanner scanner = new ReferenceScanner(mEnv, mTypes);
 		scanner.scan(source);
 		Log.i(TAG, "-------- ReferenceScanner done --------");
 		
 		Log.i(TAG, "-------- Starting ReferenceVisitor --------");
-		final ReferenceVisitor visitor = new ReferenceVisitor(env, mImports);
+		final ReferenceVisitor visitor = new ReferenceVisitor(env, resolver);
 		compilationUnit.accept(visitor, null);
 		mTypes.addAll(visitor.getTypes());
 		Log.i(TAG, "-------- ReferenceVisitor done --------");

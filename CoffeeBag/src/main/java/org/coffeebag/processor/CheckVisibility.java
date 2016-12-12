@@ -20,7 +20,9 @@ import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
 import org.coffeebag.processor.invariants.InvariantFinder;
+import org.coffeebag.processor.references.FieldReferenceFinder;
 import org.coffeebag.processor.references.ReferenceFinder;
+import org.coffeebag.processor.references.TypeResolver;
 
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -54,7 +56,7 @@ public class CheckVisibility extends AbstractProcessor {
 		typeReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 		Log.getInstance().setEnabled(log);
-		Log.getInstance().setTagFilter((tag) -> !tag.startsWith("Reference"));
+		Log.getInstance().setTagFilter((tag) -> tag.startsWith("FieldReference"));
 	}
 
 	@Override
@@ -65,7 +67,9 @@ public class CheckVisibility extends AbstractProcessor {
 				// Get erased type name
 				final TypeMirror erasure = processingEnv.getTypeUtils().erasure(element.asType());
 				
-				final ReferenceFinder finder = new ReferenceFinder(processingEnv, element);
+				final TypeResolver resolver = new TypeResolver(processingEnv, element);
+				
+				final ReferenceFinder finder = new ReferenceFinder(processingEnv, resolver, element);
 				final Set<String> usedTypes = finder.getTypesUsed();
 				// Record usages
 				typeReferences.put(erasure.toString(), usedTypes);
@@ -78,6 +82,12 @@ public class CheckVisibility extends AbstractProcessor {
 					message.append("\n\t").append(used);
 				}
 				Log.d(TAG, message.toString());
+				
+				// Find usages of fields
+				final FieldReferenceFinder fieldReferenceFinder = new FieldReferenceFinder(processingEnv, resolver, element);
+				for (AccessElement referencedField : fieldReferenceFinder.getReferencedFields()) {
+					Log.d(TAG, "Element " + element + " used field " + referencedField);
+				}
 			}
 
 			// build visibility invariant structure
