@@ -19,9 +19,6 @@ import org.coffeebag.log.Log;
  * kind {@link ElementKind#METHOD}, {@link ElementKind#CONSTRUCTOR}, {@link ElementKind#INSTANCE_INIT}, or {@link ElementKind#STATIC_INIT}</li>
  * <li>Fields, with element kind {@link ElementKind#FIELD}</li>
  * </ul>
- * 
- * This class has {@link #equals(Object)} and {@link #hashCode()} implementations that allow objects from different
- * sources to be compared correctly, unlike the implementations on the {@link Element} class.
  */
 public class AccessElement {
 	private static final String TAG = AccessElement.class.getSimpleName();
@@ -87,18 +84,6 @@ public class AccessElement {
 	public Element getElement() {
 		return element;
 	}
-	
-	/**
-	 * If this element is a type, returns the element. Otherwise, returns the innermost enclosing type of this element
-	 * @return the type, or null if none could be foun
-	 */
-	public TypeElement asTypeElement() {
-		if (getKind() == Kind.TYPE) {
-			return (TypeElement) element;
-		} else {
-			return getEnclosingType();
-		}
-	}
 
 	/**
 	 * Returns the access annotation of this element
@@ -143,8 +128,7 @@ public class AccessElement {
 	
 	@Override
 	public int hashCode() {
-		System.out.println("[AE] " + element + " compared as " + getNameForComparision());
-		return getNameForComparision().hashCode();
+		return element.hashCode();
 	}
 
 	@Override
@@ -156,9 +140,7 @@ public class AccessElement {
 		if (getClass() != obj.getClass())
 			return false;
 		AccessElement other = (AccessElement) obj;
-
-		System.out.println("[AE] " + element + " compared as " + getNameForComparision());
-		return getNameForComparision().equals(other.getNameForComparision());
+		return element.equals(other.element);
 	}
 	
 	private static Kind simplifyKind(ElementKind kind) {
@@ -177,21 +159,6 @@ public class AccessElement {
 			return Kind.FIELD;
 		default:
 			throw new IllegalArgumentException("Invalid inner element kind " + kind);
-		}
-	}
-	
-	private String getNameForComparision() {
-		if (getKind() == Kind.TYPE) {
-			// Canonical type name
-			return ((TypeElement) element).getQualifiedName().toString();
-		} else {
-			// Canonical type name . field or method name
-			final TypeElement enclosing = getEnclosingType();
-			if (enclosing != null) {
-				return enclosing.getQualifiedName() + "." + element.getSimpleName();
-			} else {
-				return "<unknown>." + element.getSimpleName();
-			}
 		}
 	}
 	
