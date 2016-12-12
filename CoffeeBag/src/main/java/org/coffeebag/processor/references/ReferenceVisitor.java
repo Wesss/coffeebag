@@ -10,6 +10,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Types;
 
+import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.Import;
 import org.coffeebag.log.Log;
 
@@ -40,7 +41,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	/**
 	 * The types referenced in the code
 	 */
-	private final Set<String> mTypes;
+	private final Set<AccessElement> mTypes;
 
 	/**
 	 * Creates a reference visitor
@@ -63,7 +64,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * 
 	 * @return an unmodifiable set of referenced type names
 	 */
-	public Set<String> getTypes() {
+	public Set<AccessElement> getTypes() {
 		return Collections.unmodifiableSet(mTypes);
 	}
 
@@ -122,15 +123,19 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			final TypeElement typeElement = mEnv.getElementUtils().getTypeElement(varType.toString());
 			if (typeElement != null) {
 				Log.d(TAG, "Resolved fully-qualified type " + varType.toString());
-				mTypes.add(varType.toString());
+				mTypes.add(new AccessElement(typeElement));
 			}
 			break;
 		case IDENTIFIER:
 			// Type name is an unqualified ID
 			final String qualified = resolveUnqualifiedType(varType.toString());
-			Log.d(TAG, "Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
 			if (qualified != null) {
-				mTypes.add(qualified);
+				Log.d(TAG, "Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
+				final TypeElement qualifiedElement = mEnv.getElementUtils().getTypeElement(qualified);
+				if (qualifiedElement == null) {
+					throw new IllegalStateException("Type element not found for " + qualified);
+				}
+				mTypes.add(new AccessElement(qualifiedElement));
 			}
 			break;
 		case PARAMETERIZED_TYPE:
