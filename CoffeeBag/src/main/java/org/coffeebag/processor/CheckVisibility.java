@@ -97,7 +97,8 @@ public class CheckVisibility extends AbstractProcessor {
 				
 				// Check each referenced type in this context
 				for (String referencedType : referencedTypes) {
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
+					final AccessElement accessElement = AccessElement.type(referencedType);
+					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(accessElement);
 					if (invariant != null) {
 						if (invariant.isUsageAllowedIn(usingClass)) {
 							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);

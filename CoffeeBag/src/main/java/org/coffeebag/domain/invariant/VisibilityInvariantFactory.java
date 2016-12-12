@@ -23,12 +23,12 @@ public class VisibilityInvariantFactory {
 		if (annotation == null) {
 			throw new IllegalArgumentException("The provided element does not have an Access annotation");
 		}
+		final TypeElement enclosing = getEnclosingType(element);
 		switch (annotation.level()) {
 			case PUBLIC:
 				return new PublicVisibilityInvariant();
 			case PRIVATE:
 				// Elements (including classes) are only visible from the classes where they are declared
-				final TypeElement enclosing = getEnclosingType(element);
 				return new ClassPrivateVisibilityInvariant(enclosing.getQualifiedName().toString());
 			case SCOPED:
 				final String scope = annotation.scope();
@@ -46,6 +46,8 @@ public class VisibilityInvariantFactory {
 				}
 				
 				return new SubpackageVisibilityInvariant(scopePackage.getQualifiedName().toString(), env.getElementUtils());
+			case SUBCLASS:
+				return new SubclassVisibilityInvariant(env.getTypeUtils(), enclosing);
 			default:
 				Log.d(TAG, "Unsupported visibility " + annotation.level());
 				return null;

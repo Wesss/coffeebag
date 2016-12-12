@@ -15,6 +15,7 @@ import org.coffeebag.annotations.Access;
 import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.domain.invariant.VisibilityInvariantFactory;
+import org.coffeebag.log.Log;
 
 public class InvariantFinder {
 
@@ -57,6 +58,7 @@ public class InvariantFinder {
 					accessElement = AccessElement.field((VariableElement) element);
 				} else {
 					// Unsupported type
+					Log.i(TAG, "Ignoring element " + element.getSimpleName() + " with unsupported kind " + element.getKind());
 					continue;
 				}
 				final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(element, env);
