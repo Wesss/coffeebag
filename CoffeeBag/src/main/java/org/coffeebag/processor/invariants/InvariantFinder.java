@@ -8,7 +8,8 @@ import java.util.Objects;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
-import javax.tools.Diagnostic.Kind;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 import org.coffeebag.annotations.Access;
 import org.coffeebag.domain.AccessElement;
@@ -48,17 +49,21 @@ public class InvariantFinder {
 		final HashMap<AccessElement, VisibilityInvariant> invariants = new HashMap<>();
 
 		for (Element element : roundEnv.getElementsAnnotatedWith(Access.class)) {
-			try {
-				final AccessElement accessElement = new AccessElement(element);
-				final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(accessElement, env);
+			
+				AccessElement accessElement;
+				if (element.getKind().isClass() || element.getKind().isInterface()) {
+					accessElement = AccessElement.type((TypeElement) element);
+				} else if (element.getKind().isField()) {
+					accessElement = AccessElement.field((VariableElement) element);
+				} else {
+					// Unsupported type
+					continue;
+				}
+				final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(element, env);
 				if (invariant != null) {
 					invariants.put(accessElement, invariant);
 				}
 
-			} catch (IllegalArgumentException e) {
-				// Element had incorrect kind
-				env.getMessager().printMessage(Kind.ERROR, "Access annotations may only be used on classes, interfaces, enumerations, methods, and fields", element);
-			}
 		}
 		return Collections.unmodifiableMap(invariants);
 	}
