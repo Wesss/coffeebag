@@ -21,7 +21,6 @@ class PackageVisibilityInvariant implements VisibilityInvariant {
 	 */
 	protected final Elements elements;
 	
-	
 	/**
 	 * Creates a new package visibility invariant
 	 * @param packageName the package in which the element should be accessible
@@ -32,8 +31,6 @@ class PackageVisibilityInvariant implements VisibilityInvariant {
 		this.packageName = packageName;
 		this.elements = elements;
 	}
-
-
 
 	@Override
 	public boolean isUsageAllowedIn(TypeElement element) {

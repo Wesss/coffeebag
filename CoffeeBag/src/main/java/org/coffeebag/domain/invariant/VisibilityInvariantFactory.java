@@ -14,8 +14,6 @@ public class VisibilityInvariantFactory {
 
 	private static String TAG = VisibilityInvariantFactory.class.getSimpleName();
 
-	// TODO add testmode to this class to enable generating mock subclasses?
-
 	/**
 	 * Creates a visibility invariant for an annotated type, executable, or field
 	 * @requires element has an Access annotation, and element.getKind() is ElementKind.CLASS, ElementKind.ENUM,
@@ -60,6 +58,13 @@ public class VisibilityInvariantFactory {
 				}
 				
 				return new SubpackageVisibilityInvariant(scopePackage.getQualifiedName().toString(), env.getElementUtils());
+			case SUBCLASS:
+				if (kind == AccessElement.Kind.TYPE) {
+					return new SubclassVisibilityInvariant(env.getTypeUtils(), (TypeElement)element.getElement());
+				} else {
+					return new SubclassVisibilityInvariant(env.getTypeUtils(), element.getEnclosingType());
+				}
+
 			default:
 				Log.d(TAG, "Unsupported visibility " + annotation.level());
 				return null;

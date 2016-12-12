@@ -47,9 +47,6 @@ public class AccessElement {
 	 * Invariant: This is not null
 	 */
 	private final Element element;
-	
-	
-	
 
 	/**
 	 * Creates a new access element

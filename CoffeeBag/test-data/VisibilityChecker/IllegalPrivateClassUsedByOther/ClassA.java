@@ -1,6 +1,6 @@
 package org.example;
 
-import  org.example.ClassB;
+import  org.other.ClassB;
 
 public class ClassA {
 
