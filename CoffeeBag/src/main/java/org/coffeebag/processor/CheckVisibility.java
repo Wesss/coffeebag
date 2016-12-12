@@ -68,17 +68,20 @@ public class CheckVisibility extends AbstractProcessor {
 				final Set<String> usedTypes = finder.getTypesUsed();
 				// Record usages
 				typeReferences.put(erasure.toString(), usedTypes);
+
+				StringBuilder message = new StringBuilder()
+						.append("Element ")
+						.append(element)
+						.append(" used these types:");
+				for (String used : usedTypes) {
+					message.append("\n\t").append(used);
+				}
+				Log.d(TAG, message.toString());
 			}
 
 			// build visibility invariant structure
 			InvariantFinder finder = new InvariantFinder(processingEnv);
 			annotatedMemberToInvariant.putAll(finder.getVisibilityInvariants(roundEnv));
-			
-			// Output invariants
-			for (Map.Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
-				System.out.println("[Invariant] " + entry.getKey() + ": " + entry.getValue());
-			}
-			
 		} else {
 			Log.d(TAG, "-------- Starting final processing --------");
 			// compare visibility invariants and their usages
