@@ -24,7 +24,6 @@ public class AccessElement {
 	 * This is not used in {@link #equals(Object)} and {@link #hashCode()}
 	 */
 	private final String fieldName;
-	
 	/**
 	 * A TypeElement that represents this element or its enclosing type, or null if none is available
 	 */

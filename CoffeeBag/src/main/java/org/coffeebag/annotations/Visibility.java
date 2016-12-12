@@ -20,9 +20,5 @@ public enum Visibility {
 	/**
 	 * Least visibility
 	 */
-	PRIVATE,
-	/**
-	 * Inherits the visibility of surrounding items
-	 */
-	INHERITED,
+	PRIVATE
 }

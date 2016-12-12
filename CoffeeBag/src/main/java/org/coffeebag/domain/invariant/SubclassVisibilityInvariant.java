@@ -29,7 +29,7 @@ public class SubclassVisibilityInvariant implements VisibilityInvariant {
 	}
 
 	/**
-	 * Allow only usage if member is using itself
+	 * Allow usage if member a subclass of annotated member's class
 	 * @inheritdoc
 	 */
 	@Override

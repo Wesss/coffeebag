@@ -4,7 +4,7 @@ import org.local.util.ClassA;
 
 public class ClassB {
 
-	private static ClassA someReference;
+	public static ClassA someReference;
 
 	public ClassB() {
 		someReference = new ClassA();
