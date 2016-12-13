@@ -22,6 +22,7 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementScanner8;
 import javax.lang.model.util.Types;
 
+import org.coffeebag.domain.AccessElement;
 import org.coffeebag.log.Log;
 
 import com.sun.source.tree.CompilationUnitTree;
@@ -34,6 +35,10 @@ import com.sun.source.util.Trees;
  */
 public class ReferenceFinder {
 	private static final String TAG = ReferenceFinder.class.getSimpleName();
+
+	public static AccessElement generateAccessElement(Types types, TypeMirror type) {
+		return AccessElement.type((TypeElement)types.asElement(type));
+	}
 	
 	/**
 	 * The processing environment
@@ -41,9 +46,9 @@ public class ReferenceFinder {
 	private final ProcessingEnvironment mEnv;
 	
 	/**
-	 * The names of the types that the code refers to
+	 * The types that the code refers to
 	 */
-	private final Set<String> mTypes;
+	private final Set<AccessElement> mTypes;
 	
 	/**
 	 * The trees object associated with the environment
@@ -76,12 +81,7 @@ public class ReferenceFinder {
 		
 		// Post-process
 		// Remove java.lang
-		for (final Iterator<String> iter = mTypes.iterator(); iter.hasNext() ; ) {
-			final String typeName = iter.next();
-			if (typeName.startsWith("java.lang.")) {
-				iter.remove();
-			}
-		}
+		mTypes.removeIf(typeName -> typeName.getTypeName().startsWith("java.lang."));
 	}
 	
 	/**
@@ -91,7 +91,7 @@ public class ReferenceFinder {
 	 * 
 	 * @return the referenced types
 	 */
-	public Set<String> getTypesUsed() {
+	public Set<AccessElement> getTypesUsed() {
 		return Collections.unmodifiableSet(mTypes);
 	}
 	
@@ -109,10 +109,10 @@ public class ReferenceFinder {
 		/**
 		 * The names of the types that the code refers to
 		 */
-		private final Set<String> mTypes;
+		private final Set<AccessElement> mTypes;
 		
 		
-		public ReferenceScanner(ProcessingEnvironment env, Set<String> types) {
+		public ReferenceScanner(ProcessingEnvironment env, Set<AccessElement> types) {
 			this.mEnv = env;
 			this.mTypes = types;
 		}
@@ -128,7 +128,8 @@ public class ReferenceFinder {
 			final TypeMirror varType = e.asType();
 			if (varType.getKind().equals(TypeKind.DECLARED)) {
 				// Erase type to remove generic type parameters
-				mTypes.add(types.erasure(varType).toString());
+				// TODO is this cast allowed?
+				mTypes.add(generateAccessElement(types, types.erasure(varType)));
 			}
 			super.visitVariable(e, p);
 			return null;
@@ -138,11 +139,11 @@ public class ReferenceFinder {
 		public Void visitType(TypeElement e, Void p) {
 			Log.d(TAG, "Visiting type " + e);
 			final Types types = mEnv.getTypeUtils();
-			mTypes.add(e.getSuperclass().toString());
+			mTypes.add(generateAccessElement(types, e.getSuperclass()));
 			for (TypeMirror implInterface : e.getInterfaces()) {
 				final TypeMirror erased = types.erasure(implInterface);
 				Log.v(TAG, "Adding implemented interface " + erased);
-				mTypes.add(erased.toString());
+				mTypes.add(generateAccessElement(types, erased));
 			}
 			for (TypeParameterElement typeParam : e.getTypeParameters()) {
 				visitTypeParameter(typeParam, p);
@@ -214,7 +215,7 @@ public class ReferenceFinder {
 			// Add the erasure of this type
 			final Types types = mEnv.getTypeUtils();
 			final TypeMirror erased = types.erasure(type);
-			mTypes.add(erased.toString());
+			mTypes.add(generateAccessElement(types, erased));
 		}
 		
 		private void handleIntersectionType(IntersectionType type) {
@@ -244,7 +245,7 @@ public class ReferenceFinder {
 			Log.d(TAG, "Visiting type parameter " + e);
 			for (TypeMirror typeBound : e.getBounds()) {
 				Log.v(TAG, "Adding type generic type bound " + typeBound);
-				mTypes.add(typeBound.toString());
+				mTypes.add(generateAccessElement(mEnv.getTypeUtils(), typeBound));
 			}
 			return super.visitTypeParameter(e, p);
 		}

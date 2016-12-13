@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -26,7 +27,7 @@ public class CheckVisibility extends AbstractProcessor {
 	/**
 	 * Maps from a canonical class name to a set of canonical class/interface/enum names that it references
 	 */
-	private Map<String, Set<String>> typeReferences;
+	private Map<String, Set<AccessElement>> typeReferences;
 	/**
 	 * Maps from a canonical class name to the set of fields that it references
 	 */
@@ -68,7 +69,7 @@ public class CheckVisibility extends AbstractProcessor {
 
 				final TypeResolver resolver = new TypeResolver(processingEnv, element);
 				final ReferenceFinder finder = new ReferenceFinder(processingEnv, resolver, element);
-				final Set<String> usedTypes = finder.getTypesUsed();
+				final Set<AccessElement> usedTypes = finder.getTypesUsed();
 				// Record usages
 				typeReferences.put(cannonicalClassName, usedTypes);
 				
@@ -92,7 +93,7 @@ public class CheckVisibility extends AbstractProcessor {
 			}
 			
 			// compare visibility invariants and their usages
-			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
+			for (Entry<String, Set<AccessElement>> typeReference : typeReferences.entrySet()) {
 				// The class being checked
 				final String className = typeReference.getKey();
 				Log.d(TAG, "Checking types referenced by " + className);
@@ -101,13 +102,12 @@ public class CheckVisibility extends AbstractProcessor {
 					throw new IllegalStateException("Type element not found for canonical name " + className);
 				}
 				// The types that the class being checked refers to
-				final Set<String> referencedTypes = typeReference.getValue();
+				final Set<AccessElement> referencedTypes = typeReference.getValue();
 				
 				// Check each referenced type in this context
-				for (String referencedType : referencedTypes) {
+				for (AccessElement referencedType : referencedTypes) {
 					Log.d(TAG, "Checking use of type " + referencedType);
-					final AccessElement accessElement = AccessElement.type(referencedType);
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(accessElement);
+					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
 					if (invariant != null) {
 						if (invariant.isUsageAllowedIn(usingClass)) {
 							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
@@ -153,7 +153,11 @@ public class CheckVisibility extends AbstractProcessor {
 	 * @return the types analyzed and the types that they refer to
 	 */
 	Map<String, Set<String>> getTypeReferences() {
-		return typeReferences;
+		final Map<String, Set<String>> stringified = new HashMap<>(typeReferences.size());
+		for (Map.Entry<String, Set<AccessElement>> entry : typeReferences.entrySet()) {
+			stringified.put(entry.getKey(), entry.getValue().stream().map(AccessElement::getTypeName).collect(Collectors.toSet()));
+		}
+		return stringified;
 	}
 
 	/**
