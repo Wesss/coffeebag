@@ -91,60 +91,37 @@ public class CheckVisibility extends AbstractProcessor {
 			for (Map.Entry<AccessElement, VisibilityInvariant> entry : annotatedMemberToInvariant.entrySet()) {
 				Log.d(TAG, "Invariant: " + entry.getKey() + " => " + entry.getValue());
 			}
-			
-			// compare visibility invariants and their usages
-			for (Entry<String, Set<AccessElement>> typeReference : typeReferences.entrySet()) {
-				// The class being checked
-				final String className = typeReference.getKey();
-				Log.d(TAG, "Checking types referenced by " + className);
-				final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
-				if (usingClass == null) {
-					throw new IllegalStateException("Type element not found for canonical name " + className);
-				}
-				// The types that the class being checked refers to
-				final Set<AccessElement> referencedTypes = typeReference.getValue();
-				
-				// Check each referenced type in this context
-				for (AccessElement referencedType : referencedTypes) {
-					Log.d(TAG, "Checking use of type " + referencedType);
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
-					if (invariant != null) {
-						if (invariant.isUsageAllowedIn(usingClass)) {
-							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
-						} else {
-							final Messager messager = processingEnv.getMessager();
-							messager.printMessage(Kind.ERROR, "Type " + referencedType + " is not visible to " + className, usingClass);
-						}
-					} else {
-						Log.v(TAG, "No visibility invariant for referenced class " + referencedType);
-					}
-				}
-			}
 
-			for (Entry<String, Set<AccessElement>> fieldReference : fieldReferences.entrySet()) {
-				String className = fieldReference.getKey();
-				final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
-				if (usingClass == null) {
-					throw new IllegalStateException("Type element not found for canonical name " + className);
-				}
-				for (AccessElement fieldUsage : fieldReference.getValue()) {
-					Log.d(TAG, "Checking use of field " + fieldUsage);
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(fieldUsage);
-					if (invariant != null) {
-						if (invariant.isUsageAllowedIn(usingClass)) {
-							Log.v(TAG, "Usage of " + fieldUsage + " OK in " + className);
-						} else {
-							final Messager messager = processingEnv.getMessager();
-							messager.printMessage(Kind.ERROR, "Field " + fieldUsage + " is not visible to " + className, usingClass);
-						}
-					} else {
-						Log.v(TAG, "No visibility invariant for referenced class " + fieldUsage);
-					}
-				}
-			}
+			checkUsages(typeReferences, "class");
+			checkUsages(fieldReferences, "field");
 		}
 		// Allow other annotations to be processed
 		return false;
+	}
+
+	private void checkUsages(Map<String, Set<AccessElement>> references, String usageType) {
+		for (Entry<String, Set<AccessElement>> reference : references.entrySet()) {
+			String className = reference.getKey();
+			final TypeElement usingClass = processingEnv.getElementUtils().getTypeElement(className);
+			if (usingClass == null) {
+				throw new IllegalStateException("Type element not found for canonical name " + className);
+			}
+			for (AccessElement usage : reference.getValue()) {
+				Log.d(TAG, "Checking use of " + usageType + " " + usage);
+				final VisibilityInvariant invariant = annotatedMemberToInvariant.get(usage);
+				if (invariant != null) {
+					if (invariant.isUsageAllowedIn(usingClass)) {
+						Log.v(TAG, "Usage of " + usage + " OK in " + className);
+					} else {
+						final Messager messager = processingEnv.getMessager();
+						messager.printMessage(Kind.ERROR, usageType.substring(0, 0).toUpperCase() +
+								usageType.substring(1) + " " + usage + " is not visible to " + className, usingClass);
+					}
+				} else {
+					Log.v(TAG, "No visibility invariant for referenced " + usageType + " " + usage);
+				}
+			}
+		}
 	}
 
 	/**
@@ -155,7 +132,9 @@ public class CheckVisibility extends AbstractProcessor {
 	Map<String, Set<String>> getTypeReferences() {
 		final Map<String, Set<String>> stringified = new HashMap<>(typeReferences.size());
 		for (Map.Entry<String, Set<AccessElement>> entry : typeReferences.entrySet()) {
-			stringified.put(entry.getKey(), entry.getValue().stream().map(AccessElement::getTypeName).collect(Collectors.toSet()));
+			stringified.put(entry.getKey(), entry.getValue().stream()
+					.map(AccessElement::getTypeName)
+					.collect(Collectors.toSet()));
 		}
 		return stringified;
 	}
