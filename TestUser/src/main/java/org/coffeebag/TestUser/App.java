@@ -6,6 +6,10 @@ import org.coffeebag.annotations.Visibility;
 @Access(level = Visibility.PUBLIC)
 public class App
 {
+	
+	public int canneloni;
+	public int rigatoni;
+	
 	@Access(level = Visibility.SCOPED, scope = "org.coffeebag")
     public void sparkle() {
     	

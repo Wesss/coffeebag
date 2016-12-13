@@ -11,6 +11,8 @@ import org.coffeebag.log.Log;
 
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeCastTree;
@@ -38,6 +40,11 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * The types referenced in the code
 	 */
 	private final Set<String> mTypes;
+	
+	/**
+	 * The package of the class, or empty for the default package
+	 */
+	private String currentPackage;
 
 	/**
 	 * Creates a reference visitor
@@ -50,6 +57,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 		mEnv = env;
 		this.typeResolver = resolver;
 		mTypes = new HashSet<>();
+		currentPackage = "";
 	}
 
 	/**
@@ -62,6 +70,18 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 */
 	public Set<String> getTypes() {
 		return Collections.unmodifiableSet(mTypes);
+	}
+
+	@Override
+	public Void visitCompilationUnit(CompilationUnitTree arg0, Void arg1) {
+		// Store the package
+		final ExpressionTree packageName = arg0.getPackageName();
+		if (packageName != null) {
+			currentPackage = packageName.toString();
+		} else {
+			currentPackage = "";
+		}
+		return super.visitCompilationUnit(arg0, arg1);
 	}
 
 	@Override
@@ -124,7 +144,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			break;
 		case IDENTIFIER:
 			// Type name is an unqualified ID
-			final String qualified = typeResolver.resolveUnqualifiedType(varType.toString());
+			final String qualified = typeResolver.resolveUnqualifiedType(varType.toString(), currentPackage);
 			Log.d(TAG, "Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
 			if (qualified != null) {
 				mTypes.add(qualified);

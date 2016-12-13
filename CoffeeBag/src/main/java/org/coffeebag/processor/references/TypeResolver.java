@@ -2,6 +2,7 @@ package org.coffeebag.processor.references;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -67,6 +68,10 @@ public class TypeResolver {
 				}
 			}
 		}
+		
+		// Add an implicit import of java.lang
+		parsedImports.add(new Import(ImportType.GLOB, "java.lang"));
+		
 		this.env = env;
 		this.imports = parsedImports;
 	}
@@ -77,17 +82,56 @@ public class TypeResolver {
 	 * 
 	 * @param unqualifiedName
 	 *            the unqualified name
+	 * @param currentPackage the name of the package where the type is referenced from (used to resolve references
+	 * to classes in the same package)
 	 * @return the fully-qualified name of the type, or null if the name could
 	 *         not be resolved
 	 */
-	public String resolveUnqualifiedType(String unqualifiedName) {
-		Log.v(TAG, "resolveUnqualifiedType(" + unqualifiedName + ")");
+	public String resolveUnqualifiedType(String unqualifiedName, String currentPackage) {
+		Objects.requireNonNull(unqualifiedName);
+		Objects.requireNonNull(currentPackage);
+		Log.v(TAG, "resolveUnqualifiedType(" + unqualifiedName + " in " + currentPackage + ")");
+		
+		// Check current package
+		final String inCurrentPackage = currentPackage + "." + unqualifiedName;
+		if (env.getElementUtils().getTypeElement(inCurrentPackage) != null) {
+			return inCurrentPackage;
+		}
+		
+		if (unqualifiedName.endsWith("[]")) {
+			// An array type
+			// Resolve the version without the array, then put it back
+			final String elementType = resolveUnqualifiedType(unqualifiedName.substring(0, unqualifiedName.length() - 2), currentPackage);
+			if (elementType != null) {
+				return elementType + "[]";
+			} else {
+				return null;
+			}
+		}
+		
+		// Remove template arguments
+		final int templateStartIndex = unqualifiedName.indexOf('<');
+		if (templateStartIndex != -1) {
+			final String withoutTemplateArgs = unqualifiedName.substring(0, templateStartIndex);
+			// Do not put template arguments back
+			return resolveUnqualifiedType(withoutTemplateArgs, currentPackage);
+		}
+		
 		for (Import anImport : imports) {
 			Log.d(TAG, String.format("Looking for \"%s\" in import \"%s\"", unqualifiedName, anImport));
 			switch (anImport.getType()) {
 			case TYPE:
 				if (anImport.getScope().endsWith("." + unqualifiedName)) {
 					return anImport.getScope();
+				}
+				// Check for importing a class and referencing a class nested in it
+				final int dotIndex = unqualifiedName.indexOf('.');
+				if (dotIndex != -1) {
+					final String outer = unqualifiedName.substring(0, dotIndex);
+					final String inner = unqualifiedName.substring(dotIndex + 1);
+					if (anImport.getScope().endsWith("." + outer)) {
+						return anImport.getScope() + "." + inner;
+					}
 				}
 				break;
 			case GLOB:
@@ -111,7 +155,7 @@ public class TypeResolver {
 	 * @return the fully-qualified name of the class, or null if it could not be
 	 *         resolved in this package
 	 */
-	public String resolveClassInPackage(String packageName, String className) {
+	private String resolveClassInPackage(String packageName, String className) {
 		final PackageElement packageElement = env.getElementUtils().getPackageElement(packageName);
 		if (packageElement != null) {
 			for (Element innerType : packageElement.getEnclosedElements()) {
@@ -137,6 +181,7 @@ public class TypeResolver {
 				case CLASS:
 				case ENUM:
 				case INTERFACE:
+					Log.d(TAG, "Looking in class " + typeElement.getQualifiedName() + " for inner class " + className);
 					if (inner.getSimpleName().contentEquals(className)) {
 						// Found
 						// Erase type to remove template arguments
