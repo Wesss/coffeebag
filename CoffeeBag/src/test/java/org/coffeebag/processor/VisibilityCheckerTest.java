@@ -1,10 +1,7 @@
 package org.coffeebag.processor;
 
-import com.google.testing.compile.JavaFileObjects;
-import com.google.testing.compile.JavaSourceSubjectFactory;
-import com.google.testing.compile.JavaSourcesSubjectFactory;
+import static org.truth0.Truth.ASSERT;
 
-import javax.tools.JavaFileObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,7 +9,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
-import static org.truth0.Truth.ASSERT;
+import javax.tools.JavaFileObject;
+
+import com.google.testing.compile.JavaFileObjects;
+import com.google.testing.compile.JavaSourceSubjectFactory;
+import com.google.testing.compile.JavaSourcesSubjectFactory;
 
 public class VisibilityCheckerTest extends AbstractCompilerTest {
 
@@ -66,12 +67,13 @@ public class VisibilityCheckerTest extends AbstractCompilerTest {
 						.failsToCompile();
 			}
 		} else {
-			File classA = new File(sourceFile.getAbsolutePath() + "/ClassA.java");
-			File classB = new File(sourceFile.getAbsolutePath() + "/ClassB.java");
+			// Find all Java files in sourceFile
+			final File[] sourceFiles = sourceFile.listFiles((dir, name) -> name.endsWith(".java"));
 
 			ArrayList<JavaFileObject> javaFiles = new ArrayList<>();
-			javaFiles.add(getJavaFileObject(classA));
-			javaFiles.add(getJavaFileObject(classB));
+			for (File oneFile : sourceFiles) {
+				javaFiles.add(getJavaFileObject(oneFile));
+			}
 
 			if (expectPass) {
 				ASSERT.about(JavaSourcesSubjectFactory.javaSources())
