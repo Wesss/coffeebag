@@ -83,11 +83,9 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 
 	@Override
 	public Void visitBlock(BlockTree arg0, Void arg1) {
-		Log.d(TAG, "Entering block " + arg0);
 		scopes.push(new HashMap<>());
 		super.visitBlock(arg0, arg1);
 		scopes.pop();
-		Log.d(TAG, "Exiting block");
 		return null;
 	}
 	
@@ -95,11 +93,9 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 
 	@Override
 	public Void visitVariable(VariableTree arg0, Void arg1) {
-		Log.d(TAG, "Visiting variable " + arg0);
 		if (!scopes.isEmpty()) {
 			final String typeName = resolver.resolveUnqualifiedType(arg0.getType().toString(), currentPackage);
 			final String varName = arg0.getName().toString();
-			Log.d(TAG, "Variable " + varName + " has type " + typeName);
 			scopes.getFirst().put(varName, typeName);
 		}
 		return super.visitVariable(arg0, arg1);
@@ -108,13 +104,13 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 	@Override
 	public Void visitMemberSelect(MemberSelectTree arg0, Void arg1) {
 		if (!scopes.isEmpty()) {
+			// This currently only supports accessing a field of a declared variable
 			// TODO: Nested fields (a.b.c)
 			final ExpressionTree variable = arg0.getExpression();
 			final String fieldName = arg0.getIdentifier().toString();
 			final String varType = resolveVariable(variable.toString());
 			if (varType != null) {
 				final AccessElement accessElement = AccessElement.field(varType, fieldName);
-				Log.d(TAG, "Used " + accessElement);
 				referencedFields.add(accessElement);
 			} else {
 				Log.i(TAG, "Variable " + variable + " not resolved");
