@@ -93,7 +93,8 @@ public class TypeResolver {
 		Log.v(TAG, "resolveUnqualifiedType(" + unqualifiedName + " in " + currentPackage + ")");
 		
 		// Check current package
-		final String inCurrentPackage = currentPackage + "." + unqualifiedName;
+		final String packagePrefix = currentPackage.isEmpty() ? "" : currentPackage + ".";
+		final String inCurrentPackage = packagePrefix + unqualifiedName;
 		if (env.getElementUtils().getTypeElement(inCurrentPackage) != null) {
 			return inCurrentPackage;
 		}
