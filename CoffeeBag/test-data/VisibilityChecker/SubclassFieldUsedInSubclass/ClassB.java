@@ -4,9 +4,8 @@ import org.local.util.ClassA;
 
 public class ClassB extends ClassA {
 
-	private static ClassA someReference;
-
 	public ClassB() {
-		someReference = new ClassA();
+		ClassA someA = new ClassA();
+		someA.x = 2;
 	}
 }

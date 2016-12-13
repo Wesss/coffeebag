@@ -1,11 +1,11 @@
 package org.local.util;
 
-import org.coffeebag.annotations.Access;
 import org.coffeebag.annotations.Visibility;
-import com.example.company.ClassB;
+import org.coffeebag.annotations.Access;
 
-@Access(level = Visibility.SUBCLASS)
 public class ClassA {
 
-}
+	@Access(level = Visibility.SUBCLASS)
+	public int x;
 
+}
