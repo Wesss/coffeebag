@@ -12,8 +12,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
 /**
- * TODO support for compiling multiple files in a package structure
- *
  * A compilerTestRunner represents a suite of tests to be run against a compiler.
  *
  * This test runner will scan the directory defined by getTestPath() for pairs of files:

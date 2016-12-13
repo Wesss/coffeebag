@@ -16,8 +16,7 @@ public class Import {
 		/**
 		 * A glob import of all classes within a package, or all inner classes within a class
 		 */
-		GLOB,
-		// TODO: Static imports
+		GLOB
 	}
 	
 	/**

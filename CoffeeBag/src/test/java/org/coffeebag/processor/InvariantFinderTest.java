@@ -111,7 +111,6 @@ public class InvariantFinderTest extends AbstractCompilerTest {
 		Name mockName = mock(Name.class);
 		when(mockName.toString()).thenReturn(getQualifiedName(packageName, simpleClassName));
 		when(mockElement.getQualifiedName()).thenReturn(mockName);
-		// TODO isSubclassSupport
 
 		return mockElement;
 	}

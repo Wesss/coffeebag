@@ -72,6 +72,9 @@ public class CheckVisibility extends AbstractProcessor {
 				final Set<AccessElement> usedTypes = finder.getTypesUsed();
 				// Record usages
 				typeReferences.put(cannonicalClassName, usedTypes);
+				for (AccessElement referencedType : usedTypes) {
+					Log.d(TAG, "Element " + element + " used type " + referencedType);
+				}
 				
 				// Find usages of fields
 				final FieldReferenceFinder fieldReferenceFinder = new FieldReferenceFinder(processingEnv, resolver, element);
@@ -95,7 +98,7 @@ public class CheckVisibility extends AbstractProcessor {
 			checkUsages(typeReferences, "class");
 			checkUsages(fieldReferences, "field");
 		}
-		// Allow other annotations to be processed
+		// Do not consume annotations
 		return false;
 	}
 

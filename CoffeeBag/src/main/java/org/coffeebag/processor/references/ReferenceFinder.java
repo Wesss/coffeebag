@@ -6,11 +6,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.IntersectionType;
@@ -37,7 +33,13 @@ public class ReferenceFinder {
 	private static final String TAG = ReferenceFinder.class.getSimpleName();
 
 	public static AccessElement generateAccessElement(Types types, TypeMirror type) {
-		return AccessElement.type((TypeElement)types.asElement(type));
+		Element element = types.asElement(type);
+		if (element.getKind() == ElementKind.CLASS || element.getKind() ==ElementKind.INTERFACE
+				|| element.getKind() == ElementKind.ENUM) {
+			return AccessElement.type((TypeElement) element);
+		} else {
+			throw new IllegalStateException("Attempted to generate Type AccesElement from non-type element");
+		}
 	}
 	
 	/**
@@ -128,7 +130,6 @@ public class ReferenceFinder {
 			final TypeMirror varType = e.asType();
 			if (varType.getKind().equals(TypeKind.DECLARED)) {
 				// Erase type to remove generic type parameters
-				// TODO is this cast allowed?
 				mTypes.add(generateAccessElement(types, types.erasure(varType)));
 			}
 			super.visitVariable(e, p);
