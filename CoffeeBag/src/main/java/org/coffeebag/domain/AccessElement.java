@@ -88,6 +88,13 @@ public class AccessElement {
 		return fieldElement;
 	}
 	
+	/**
+	 * Returns whether this element is a field
+	 * @return true if this is a field
+	 */
+	public boolean isField() {
+		return fieldName != null;
+	}
 	
 	@Override
 	public String toString() {

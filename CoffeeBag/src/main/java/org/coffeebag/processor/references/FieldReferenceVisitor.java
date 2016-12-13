@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.coffeebag.domain.AccessElement;
-import org.coffeebag.log.Log;
 
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.ClassTree;
@@ -24,6 +23,7 @@ import com.sun.source.util.TreeScanner;
  */
 class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 	
+	@SuppressWarnings("unused")
 	private static final String TAG = FieldReferenceVisitor.class.getSimpleName();
 	
 	/**
@@ -112,8 +112,6 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 			if (varType != null) {
 				final AccessElement accessElement = AccessElement.field(varType, fieldName);
 				referencedFields.add(accessElement);
-			} else {
-				Log.i(TAG, "Variable " + variable + " not resolved");
 			}
 			
 		}

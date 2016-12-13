@@ -1,6 +1,7 @@
 package org.coffeebag.processor;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -30,9 +31,9 @@ public class CheckVisibility extends AbstractProcessor {
 	private static final String TAG = CheckVisibility.class.getSimpleName();
 
 	/**
-	 * Maps from a canonical class name to a set of canonical class/interface/enum names that it references
+	 * Maps from a canonical class name to a set of elements that it references
 	 */
-	private Map<String, Set<String>> typeReferences;
+	private Map<String, Set<AccessElement>> elementReferences;
 
 	/**
 	 * Maps an annotated element to its visibility invariant.
@@ -53,7 +54,7 @@ public class CheckVisibility extends AbstractProcessor {
 	 * @param log if the processor should output log information
 	 */
 	public CheckVisibility(boolean log) {
-		typeReferences = new HashMap<>();
+		elementReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 		Log.getInstance().setEnabled(log);
 		Log.getInstance().setTagFilter((tag) -> tag.startsWith("FieldReference") || tag.startsWith("TypeResolver"));
@@ -70,15 +71,15 @@ public class CheckVisibility extends AbstractProcessor {
 				final TypeResolver resolver = new TypeResolver(processingEnv, element);
 				
 				final ReferenceFinder finder = new ReferenceFinder(processingEnv, resolver, element);
-				final Set<String> usedTypes = finder.getTypesUsed();
+				final Set<AccessElement> usedTypes = finder.getTypesUsed();
 				// Record usages
-				typeReferences.put(erasure.toString(), usedTypes);
+				elementReferences.put(erasure.toString(), usedTypes);
 
 				StringBuilder message = new StringBuilder()
 						.append("Element ")
 						.append(element)
 						.append(" used these types:");
-				for (String used : usedTypes) {
+				for (AccessElement used : usedTypes) {
 					message.append("\n\t").append(used);
 				}
 				Log.d(TAG, message.toString());
@@ -101,7 +102,7 @@ public class CheckVisibility extends AbstractProcessor {
 			}
 			
 			// compare visibility invariants and their usages
-			for (Entry<String, Set<String>> typeReference : typeReferences.entrySet()) {
+			for (Entry<String, Set<AccessElement>> typeReference : elementReferences.entrySet()) {
 				// The class being checked
 				final String className = typeReference.getKey();
 				Log.d(TAG, "Checking types referenced by " + className);
@@ -110,13 +111,12 @@ public class CheckVisibility extends AbstractProcessor {
 					throw new IllegalStateException("Type element not found for canonical name " + className);
 				}
 				// The types that the class being checked refers to
-				final Set<String> referencedTypes = typeReference.getValue();
+				final Set<AccessElement> referencedTypes = typeReference.getValue();
 				
 				// Check each referenced type in this context
-				for (String referencedType : referencedTypes) {
+				for (AccessElement referencedType : referencedTypes) {
 					Log.d(TAG, "Checking use of type " + referencedType);
-					final AccessElement accessElement = AccessElement.type(referencedType);
-					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(accessElement);
+					final VisibilityInvariant invariant = annotatedMemberToInvariant.get(referencedType);
 					if (invariant != null) {
 						if (invariant.isUsageAllowedIn(usingClass)) {
 							Log.v(TAG, "Usage of " + referencedType + " OK in " + className);
@@ -140,7 +140,21 @@ public class CheckVisibility extends AbstractProcessor {
 	 * @return the types analyzed and the types that they refer to
 	 */
 	Map<String, Set<String>> getTypeReferences() {
-		return typeReferences;
+		final Map<String, Set<String>> stringified = new HashMap<>(elementReferences.size());
+		for (Map.Entry<String, Set<AccessElement>> entry : elementReferences.entrySet()) {
+			final Set<String> stringifiedElements = new HashSet<>(entry.getValue().size());
+			for (AccessElement element : entry.getValue()) {
+				// Do not include fields
+				if (!element.isField()) {
+					// For testing purposes, remove classes in java.lang
+					if (!element.getTypeName().startsWith("java.lang.")) {
+						stringifiedElements.add(element.toString());
+					}
+				}
+			}
+			stringified.put(entry.getKey(), stringifiedElements);
+		}
+		return stringified;
 	}
 
 	/**
