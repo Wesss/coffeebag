@@ -110,6 +110,7 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 			final String fieldName = arg0.getIdentifier().toString();
 			final String varType = resolveVariable(variable.toString());
 			if (varType != null) {
+				Log.d(TAG, "Accessing field " + fieldName + " of type " + varType);
 				final AccessElement accessElement = AccessElement.field(varType, fieldName);
 				referencedFields.add(accessElement);
 			} else {

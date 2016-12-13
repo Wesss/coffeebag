@@ -154,4 +154,19 @@ public class CheckVisibility extends AbstractProcessor {
 		}
 		return stringified;
 	}
+	
+	/**
+	 * For testing, returns the field references that were detected
+	 * 
+	 * @return a map from canonical class names to the fields (ClassName.fieldName) referenced
+	 */
+	Map<String, Set<String>> getFieldReferences() {
+		final Map<String, Set<String>> stringified = new HashMap<>(fieldReferences.size());
+		for (Map.Entry<String, Set<AccessElement>> entry : fieldReferences.entrySet()) {
+			stringified.put(entry.getKey(), entry.getValue().stream()
+					.map(AccessElement::toString)
+					.collect(Collectors.toSet()));
+		}
+		return stringified;
+	}
 }
