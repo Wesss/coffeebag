@@ -12,6 +12,8 @@ import org.coffeebag.domain.AccessElement;
 import org.coffeebag.log.Log;
 
 import com.sun.source.tree.BlockTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.VariableTree;
@@ -42,14 +44,42 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 	 * The deepest scope contains the fields of the current type
 	 */
 	private final Deque<Map<String, String>> scopes;
+	
+	/**
+	 * The package of the class, or empty for the default package
+	 */
+	private String currentPackage;
 
 	public FieldReferenceVisitor(TypeResolver resolver) {
 		this.resolver = resolver;
 		this.referencedFields = new HashSet<>();
 		this.scopes = new ArrayDeque<>();
-		// Push a scope for the fields
-		this.scopes.push(new HashMap<>());
+		this.currentPackage = "";
 	}
+	
+	@Override
+	public Void visitCompilationUnit(CompilationUnitTree arg0, Void arg1) {
+		// Store the package
+		final ExpressionTree packageName = arg0.getPackageName();
+		if (packageName != null) {
+			currentPackage = packageName.toString();
+		} else {
+			currentPackage = "";
+		}
+		return super.visitCompilationUnit(arg0, arg1);
+	}
+	
+	@Override
+	public Void visitClass(ClassTree arg0, Void arg1) {
+		// Push a scope for the fields
+		final HashMap<String, String> classScope = new HashMap<>();
+		classScope.put("this", arg0.getSimpleName().toString());
+		this.scopes.push(classScope);
+		super.visitClass(arg0, arg1);
+		this.scopes.pop();
+		return null;
+	}
+	
 
 	@Override
 	public Void visitBlock(BlockTree arg0, Void arg1) {
@@ -65,9 +95,9 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 
 	@Override
 	public Void visitVariable(VariableTree arg0, Void arg1) {
+		Log.d(TAG, "Visiting variable " + arg0);
 		if (!scopes.isEmpty()) {
-			Log.d(TAG, "Visiting variable " + arg0);
-			final String typeName = resolver.resolveUnqualifiedType(arg0.getType().toString());
+			final String typeName = resolver.resolveUnqualifiedType(arg0.getType().toString(), currentPackage);
 			final String varName = arg0.getName().toString();
 			Log.d(TAG, "Variable " + varName + " has type " + typeName);
 			scopes.getFirst().put(varName, typeName);
@@ -80,7 +110,7 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 		if (!scopes.isEmpty()) {
 			// TODO: Nested fields (a.b.c)
 			final ExpressionTree variable = arg0.getExpression();
-			final String fieldName = arg0.getExpression().toString();
+			final String fieldName = arg0.getIdentifier().toString();
 			final String varType = resolveVariable(variable.toString());
 			if (varType != null) {
 				final AccessElement accessElement = AccessElement.field(varType, fieldName);
@@ -117,5 +147,5 @@ class FieldReferenceVisitor extends TreeScanner<Void, Void> {
 	public Set<AccessElement> getReferencedFields() {
 		return Collections.unmodifiableSet(referencedFields);
 	}
-	
+
 }

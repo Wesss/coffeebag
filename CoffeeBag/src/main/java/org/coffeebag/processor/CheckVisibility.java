@@ -56,7 +56,7 @@ public class CheckVisibility extends AbstractProcessor {
 		typeReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 		Log.getInstance().setEnabled(log);
-		Log.getInstance().setTagFilter((tag) -> tag.startsWith("FieldReference"));
+		Log.getInstance().setTagFilter((tag) -> tag.startsWith("FieldReference") || tag.startsWith("TypeResolver"));
 	}
 
 	@Override

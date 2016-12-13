@@ -16,6 +16,11 @@ public class Thing2 {
 		
 		// Use Collision, which is private
 		new Collision();
+		
+		// Use fields of App
+		final App app = new App();
+		app.canneloni = 37;
+		app.rigatoni = 314;
 	}
 	
 	private void reticulate() {
