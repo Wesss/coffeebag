@@ -7,7 +7,6 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 
-import org.coffeebag.domain.AccessElement;
 import org.coffeebag.log.Log;
 
 import com.sun.source.tree.ArrayTypeTree;
@@ -40,7 +39,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	/**
 	 * The types referenced in the code
 	 */
-	private final Set<AccessElement> mTypes;
+	private final Set<String> mTypes;
 	
 	/**
 	 * The package of the class, or empty for the default package
@@ -69,7 +68,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 	 * 
 	 * @return an unmodifiable set of referenced type names
 	 */
-	public Set<AccessElement> getTypes() {
+	public Set<String> getTypes() {
 		return Collections.unmodifiableSet(mTypes);
 	}
 
@@ -140,7 +139,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			final TypeElement typeElement = mEnv.getElementUtils().getTypeElement(varType.toString());
 			if (typeElement != null) {
 				Log.d(TAG, "Resolved fully-qualified type " + varType.toString());
-				mTypes.add(AccessElement.type(typeElement));
+				mTypes.add(varType.toString());
 			}
 			break;
 		case IDENTIFIER:
@@ -148,7 +147,7 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			final String qualified = typeResolver.resolveUnqualifiedType(varType.toString(), currentPackage);
 			Log.d(TAG, "Resolved unqualified \"" + varType + "\" as \"" + qualified + "\"");
 			if (qualified != null) {
-				mTypes.add(AccessElement.type(qualified));
+				mTypes.add(qualified);
 			}
 			break;
 		case PARAMETERIZED_TYPE:
