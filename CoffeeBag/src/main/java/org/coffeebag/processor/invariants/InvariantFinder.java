@@ -50,22 +50,20 @@ public class InvariantFinder {
 		final HashMap<AccessElement, VisibilityInvariant> invariants = new HashMap<>();
 
 		for (Element element : roundEnv.getElementsAnnotatedWith(Access.class)) {
-			
-				AccessElement accessElement;
-				if (element.getKind().isClass() || element.getKind().isInterface()) {
-					accessElement = AccessElement.type((TypeElement) element);
-				} else if (element.getKind().isField()) {
-					accessElement = AccessElement.field((VariableElement) element);
-				} else {
-					// Unsupported type
-					Log.i(TAG, "Ignoring element " + element.getSimpleName() + " with unsupported kind " + element.getKind());
-					continue;
-				}
-				final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(element, env);
-				if (invariant != null) {
-					invariants.put(accessElement, invariant);
-				}
-
+			AccessElement accessElement;
+			if (element.getKind().isClass() || element.getKind().isInterface()) {
+				accessElement = AccessElement.type((TypeElement) element);
+			} else if (element.getKind().isField()) {
+				accessElement = AccessElement.field((VariableElement) element);
+			} else {
+				// Unsupported type
+				Log.i(TAG, "Ignoring element " + element.getSimpleName() + " with unsupported kind " + element.getKind());
+				continue;
+			}
+			final VisibilityInvariant invariant = VisibilityInvariantFactory.getInvariant(element, env);
+			if (invariant != null) {
+				invariants.put(accessElement, invariant);
+			}
 		}
 		return Collections.unmodifiableMap(invariants);
 	}
