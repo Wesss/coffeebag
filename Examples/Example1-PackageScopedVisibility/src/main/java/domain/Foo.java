@@ -23,10 +23,6 @@ public class Foo {
 
     private void useFooUtils() {
         // We are not allowed to use FooUtils, as we are not in the service package
-         FooUtils util = new FooUtils();
-
-        // NOTE: As we cannot yet detect method or constructor usage,
         // Foo foo = new FooUtils().generateFoo();
-        // will still work
     }
 }
