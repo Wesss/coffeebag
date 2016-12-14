@@ -12,7 +12,7 @@
 
 ## Tutorial ##
 
-### Compiling ###
+### Compile CoffeeBag From Source ###
 
 CoffeeBag uses Maven for compilation.
 
@@ -22,7 +22,7 @@ ${proj-root}/CoffeeBag
 To generate a standalone .jar file: Run `mvn package`. The file will be created
 at `CoffeeBag/target/CoffeeBag-1.0-SNAPSHOT.jar`.
 
-### Using ###
+### Compile Java Source Code with CoffeeBag ###
 
 If your project uses Maven, add the following to the `<dependencies>` section
 of your `pom.xml`:
@@ -39,6 +39,32 @@ Otherwise, add the CoffeeBag jar to your classpath when compiling:
 	javac -cp CoffeeBag-1.0-SNAPSHOT.jar File1.java
 
 CoffeeBag will run during the compilation process and will check your code.
+
+### Writing CoffeeBag Visibility Modifiers ###
+
+CoffeeBag visibility modifiers are declared through the @Access annotation.
+
+    @Access(level = Visibility.PUBLIC)
+    public class Foo {
+
+The @Access annotation is allowed on classes, interfaces, enums, and fields.
+(methods and constructors are also legal, but do nothing at the moment)
+
+Four visibility levels are currently supported:
+- PUBLIC: the annotated member can be accessed anywhere.
+- PRIVATE: the annotated member can only be accessed within its parent class.
+    If the member is a class, enum, or interface, it may only be accessed in
+    its package.
+- SUBCLASS: The annotated member may only be accessed by in classes that subclass
+    the annotated member's class.
+- SCOPE: To use SCOPE, an additional scope argument must be passed in the
+    annotation as shown below. The annotated member may only be accessed by
+    classes that are either in the package or in a sub-package represented by the
+    scope argument.
+
+
+    @Access(level = Visibility.SCOPED, scope = "org.some.package")
+    public class Foo {
 
 ## Examples ##
 
