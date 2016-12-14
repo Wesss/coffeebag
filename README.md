@@ -66,8 +66,8 @@ scope argument.
 
 Scoped visibility usage:
 
-	@Access(level = Visibility.SCOPED, scope = "org.some.package")
-	public class Foo {
+    @Access(level = Visibility.SCOPED, scope = "org.some.package")
+    public class Foo {
 		
 	}
 
