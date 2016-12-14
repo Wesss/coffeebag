@@ -11,7 +11,7 @@ public class Bar {
             Note that just a protected modifier would not prevent this, as
             protected gives access to package and subclasses.
         */
-        // foo.description = "Bar was here";
+        foo.description = "Bar was here";
         
         return foo;
     }
