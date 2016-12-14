@@ -9,6 +9,7 @@ target/
 
 # Java
 *.class
+*.jar
 
 # Eclipse
 .settings/
