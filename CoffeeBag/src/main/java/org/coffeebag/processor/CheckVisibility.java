@@ -117,7 +117,7 @@ public class CheckVisibility extends AbstractProcessor {
 						Log.v(TAG, "Usage of " + usage + " OK in " + className);
 					} else {
 						final Messager messager = processingEnv.getMessager();
-						messager.printMessage(Kind.ERROR, usageType.substring(0, 0).toUpperCase() +
+						messager.printMessage(Kind.ERROR, usageType.substring(0, 1).toUpperCase() +
 								usageType.substring(1) + " " + usage + " is not visible to " + className, usingClass);
 					}
 				} else {
