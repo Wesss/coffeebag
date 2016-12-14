@@ -65,6 +65,7 @@ classes that are either in the package or in a sub-package represented by the
 scope argument.
 
 
+
     @Access(level = Visibility.SCOPED, scope = "org.some.package")
     public class Foo {
 		
