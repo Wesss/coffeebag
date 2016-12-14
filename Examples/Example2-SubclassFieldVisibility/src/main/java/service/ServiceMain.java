@@ -19,8 +19,8 @@ public class ServiceMain {
 
         /* ServiceMain isn't allowed to access Foo.description, as it is
             declared protected */
-        foo.description = "ServiceMain was here";
-        System.out.println(foo.getDescription());
+        //foo.description = "ServiceMain was here";
+        //System.out.println(foo.getDescription());
 
         /* Bar isn't allowed to access Foo.description either, event though
             it is in the same domain package */

@@ -7,7 +7,7 @@ public class Foo {
 
     // Only this class or its subclasses are allowed to access description
     @Access(level = Visibility.SUBCLASS)
-    public String description;
+    protected String description;
 
     public Foo() {
         description = "normal description";
