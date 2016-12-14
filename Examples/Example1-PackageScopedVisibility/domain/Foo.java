@@ -3,7 +3,30 @@ package domain;
 import org.coffeebag.annotations.Access;
 import org.coffeebag.annotations.Visibility;
 
-@Access(level = Visibility.PRIVATE)
+import domain.subdomain.Bar;
+import domain.FooUtils;
+
 public class Foo {
 
+    // We are allowed access to Bar as we are in the domain package
+    private Bar bar;
+
+    public Foo() {
+        bar = new Bar();
+    }
+
+    @Override
+    public String toString() {
+        return "I am a " + super.toString() +
+                " with " + bar.toString();
+    }
+
+    private void useFooUtils() {
+        // We are not allowed to use FooUtils, as we are not in the service package
+        // FooUtils util = new FooUtils();
+
+        // NOTE: As we cannot yet detect method or constructor usage,
+        // Foo foo = new FooUtils().generateFoo();
+        // will still work
+    }
 }
