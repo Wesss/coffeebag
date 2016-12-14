@@ -13,6 +13,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 
@@ -68,6 +69,10 @@ public class CheckVisibility extends AbstractProcessor {
 		if (!roundEnv.processingOver()) {
 			// build member usage structure
 			for (Element element : roundEnv.getRootElements()) {
+				// Ignore packages
+				if (element.getKind() == ElementKind.PACKAGE) {
+					continue;
+				}
 				// Get erased type name
 				final String cannonicalClassName = processingEnv.getTypeUtils().erasure(element.asType()).toString();
 
