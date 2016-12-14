@@ -14,6 +14,7 @@ import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeCastTree;
@@ -117,6 +118,14 @@ class ReferenceVisitor extends TreeScanner<Void, Void> {
 			handleTypeTree(bound);
 		}
 		return super.visitTypeParameter(arg0, arg1);
+	}
+
+	@Override
+	public Void visitNewClass(NewClassTree arg0, Void arg1) {
+		// Resolve constructor type
+		final ExpressionTree typeNameTree = arg0.getIdentifier();
+		handleTypeTree(typeNameTree);
+		return super.visitNewClass(arg0, arg1);
 	}
 
 	/**

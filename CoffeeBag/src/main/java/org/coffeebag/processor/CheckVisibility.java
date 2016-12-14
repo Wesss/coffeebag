@@ -1,5 +1,21 @@
 package org.coffeebag.processor;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic.Kind;
+
 import org.coffeebag.domain.AccessElement;
 import org.coffeebag.domain.invariant.VisibilityInvariant;
 import org.coffeebag.log.Log;
@@ -7,17 +23,6 @@ import org.coffeebag.processor.invariants.InvariantFinder;
 import org.coffeebag.processor.references.FieldReferenceFinder;
 import org.coffeebag.processor.references.ReferenceFinder;
 import org.coffeebag.processor.references.TypeResolver;
-
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic.Kind;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -56,7 +61,6 @@ public class CheckVisibility extends AbstractProcessor {
 		fieldReferences = new HashMap<>();
 		annotatedMemberToInvariant = new HashMap<>();
 		Log.getInstance().setEnabled(log);
-		Log.getInstance().setTagFilter((tag) -> tag.equals(TAG) || tag.startsWith("FieldReferenceVisitor"));
 	}
 
 	@Override
