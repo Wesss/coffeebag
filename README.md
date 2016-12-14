@@ -42,12 +42,12 @@ CoffeeBag will run during the compilation process and will check your code.
 
 ### Writing CoffeeBag Visibility Modifiers ###
 
-CoffeeBag visibility modifiers are declared through the @Access annotation.
+CoffeeBag visibility modifiers are declared through the `@Access` annotation.
 
     @Access(level = Visibility.PUBLIC)
     public class Foo {
 
-The @Access annotation is allowed on classes, interfaces, enums, and fields.
+The `@Access` annotation is allowed on classes, interfaces, enums, and fields.
 (methods and constructors are also legal, but do nothing at the moment)
 
 Four visibility levels are currently supported:
