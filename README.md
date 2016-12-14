@@ -10,4 +10,35 @@
 
 [Project Report](https://docs.google.com/document/d/1qFW4KRdD5IEZ9t9j3Z7XdpyMS7NVKR9nrZcZWHj91-M/edit?usp=sharing)
 
-//TODO tutorial, example code
+## Tutorial ##
+
+### Compiling ###
+
+CoffeeBag uses Maven for compilation.
+
+To install CoffeeBag in your local Maven repository: `mvn install`
+
+To generate a standalone .jar file: Run `mvn package`. The file will be created
+at `target/CoffeeBag-1.0-SNAPSHOT.jar`.
+
+### Using ###
+
+If your project uses Maven, add the following to the `<dependencies>` section
+of your `pom.xml`:
+
+
+    <dependency>
+    	<groupId>org.coffeebag</groupId>
+    	<artifactId>CoffeeBag</artifactId>
+    	<version>1.0-SNAPSHOT</version>
+    </dependency>
+
+Otherwise, add the CoffeeBag jar to your classpath when compiling:
+
+	javac -cp CoffeeBag-1.0-SNAPSHOT.jar File1.java
+
+CoffeeBag will run during the compilation process and will check your code.
+
+## Examples ##
+
+Examples are available in the [examples folder](Examples).
