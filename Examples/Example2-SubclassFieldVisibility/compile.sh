@@ -13,6 +13,6 @@ cd ../Examples/Example2-SubclassFieldVisibility
 
 # compile
 echo 'compiling java code'
-find -name "*.java" > sources
+find . -name "*.java" > sources
 javac -cp CoffeeBag-1.0-SNAPSHOT.jar @sources
 rm sources &> /dev/null
