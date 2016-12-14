@@ -10,6 +10,8 @@
 
 [Project Report](https://docs.google.com/document/d/1qFW4KRdD5IEZ9t9j3Z7XdpyMS7NVKR9nrZcZWHj91-M/edit?usp=sharing)
 
+[Presentation](https://docs.google.com/a/uw.edu/presentation/d/1n_tpWg74E9W3AI5AnNu4Ip1Iq53tgwhJh4lkNGvYtv8/edit?usp=sharing)
+
 ## Tutorial ##
 
 ### Compile CoffeeBag From Source ###
@@ -45,7 +47,7 @@ CoffeeBag visibility modifiers are declared through the `@Access` annotation.
 
     @Access(level = Visibility.PUBLIC)
     public class Foo {
-		
+
     }
 
 The `@Access` annotation is allowed on classes, interfaces, enums, and fields.
@@ -68,7 +70,7 @@ Scoped visibility usage:
 
     @Access(level = Visibility.SCOPED, scope = "org.some.package")
     public class Foo {
-		
+
 	}
 
 
