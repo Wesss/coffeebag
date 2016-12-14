@@ -64,11 +64,13 @@ annotation as shown below. The annotated member may only be accessed by
 classes that are either in the package or in a sub-package represented by the
 scope argument.
 
+Scoped visibility usage:
 
-    @Access(level = Visibility.SCOPED, scope = "org.some.package")
-    public class Foo {
+	@Access(level = Visibility.SCOPED, scope = "org.some.package")
+	public class Foo {
 		
-    }
+	}
+
 
 ## Examples ##
 
