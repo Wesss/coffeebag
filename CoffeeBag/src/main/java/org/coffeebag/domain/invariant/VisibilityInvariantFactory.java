@@ -3,6 +3,7 @@ package org.coffeebag.domain.invariant;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
@@ -28,8 +29,15 @@ public class VisibilityInvariantFactory {
 			case PUBLIC:
 				return new PublicVisibilityInvariant();
 			case PRIVATE:
-				// Elements (including classes) are only visible from the classes where they are declared
-				return new ClassPrivateVisibilityInvariant(enclosing.getQualifiedName().toString());
+				final ElementKind kind = element.getKind();
+				if (kind.isClass() || kind.isInterface()) {
+					// Classes are only visible in the package where they are declared
+					final PackageElement elementPackage = env.getElementUtils().getPackageOf(element);
+					return new PackageVisibilityInvariant(elementPackage.getQualifiedName().toString(), env.getElementUtils());
+				} else {
+					// Non-class elements are only visible from the classes where they are declared
+					return new ClassPrivateVisibilityInvariant(enclosing.getQualifiedName().toString());
+				}
 			case SCOPED:
 				final String scope = annotation.scope();
 				final Messager messager = env.getMessager();
