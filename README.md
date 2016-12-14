@@ -16,10 +16,11 @@
 
 CoffeeBag uses Maven for compilation.
 
-To install CoffeeBag in your local Maven repository: `mvn install`
+To install CoffeeBag in your local Maven repository, run `mvn install` while in
+${proj-root}/CoffeeBag
 
 To generate a standalone .jar file: Run `mvn package`. The file will be created
-at `target/CoffeeBag-1.0-SNAPSHOT.jar`.
+at `CoffeeBag/target/CoffeeBag-1.0-SNAPSHOT.jar`.
 
 ### Using ###
 
