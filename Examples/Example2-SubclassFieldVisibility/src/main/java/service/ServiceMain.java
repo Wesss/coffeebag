@@ -22,7 +22,7 @@ public class ServiceMain {
         //foo.description = "ServiceMain was here";
         //System.out.println(foo.getDescription());
 
-        /* Bar isn't allowed to access Foo.description either, event though
+        /* Bar isn't allowed to access Foo.description either, even though
             it is in the same domain package */
         Foo hackedFoo = Bar.getHackedFoo();
         System.out.println("hackedFoo: " + hackedFoo.getDescription());
