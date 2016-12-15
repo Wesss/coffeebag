@@ -12,6 +12,8 @@
 
 [Presentation](https://docs.google.com/a/uw.edu/presentation/d/1n_tpWg74E9W3AI5AnNu4Ip1Iq53tgwhJh4lkNGvYtv8/edit?usp=sharing)
 
+[Screencast](https://homes.cs.washington.edu/~samcrow/CSE401/Screencast.mp4)
+
 ## Tutorial ##
 
 ### Compile CoffeeBag From Source ###
